@@ -6,14 +6,13 @@ struct SettingsView: View {
     @ObservedObject var state: AppState
     @Environment(\.colorScheme) private var colorScheme
 
-    static let panelWidth: CGFloat = 360
-    static let panelMaxHeight: CGFloat = 560
+    private let panelWidth: CGFloat = 360
 
     var body: some View {
         VStack(spacing: 0) {
             header
-            OverlayScrollView {
-                VStack(alignment: .leading, spacing: 12) {
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 14) {
                     if state.updateAvailable { updateBanner }
                     if state.dockIsAway { moveBackBanner }
                     if !state.isTrusted || (state.isEnabled && !state.isRunning) {
@@ -26,15 +25,11 @@ struct SettingsView: View {
                     updatesSection
                     footer
                 }
-                // Full width under the overlay scroller (no permanent gutter).
-                .padding(.horizontal, 12)
-                .padding(.top, 10)
-                .padding(.bottom, 14)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(14)
             }
         }
-        .frame(width: Self.panelWidth)
-        .frame(maxHeight: Self.panelMaxHeight)
+        .frame(width: panelWidth)
+        .frame(maxHeight: 520)
         .background { glassBackground }
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .onAppear {
@@ -526,98 +521,6 @@ struct SettingsView: View {
     private var chipFill: some View {
         RoundedRectangle(cornerRadius: 12, style: .continuous)
             .fill(.thinMaterial)
-    }
-}
-
-// MARK: - Overlay scroll (iPhone-style auto-hiding scroller)
-
-/// AppKit scroll view with **overlay** scroller: thin, right edge, fades when idle.
-/// Does not reserve a permanent scrollbar gutter, so content can use full width.
-struct OverlayScrollView<Content: View>: NSViewRepresentable {
-    @ViewBuilder var content: () -> Content
-
-    func makeCoordinator() -> Coordinator { Coordinator() }
-
-    final class Coordinator {
-        var hosting: NSHostingView<AnyView>?
-        var didFlashScrollers = false
-    }
-
-    func makeNSView(context: Context) -> NSScrollView {
-        let scrollView = NSScrollView()
-        scrollView.drawsBackground = false
-        scrollView.backgroundColor = .clear
-        scrollView.borderType = .noBorder
-        scrollView.hasVerticalScroller = true
-        scrollView.hasHorizontalScroller = false
-        scrollView.autohidesScrollers = true
-        scrollView.scrollerStyle = .overlay
-        scrollView.scrollerKnobStyle = .default
-        scrollView.horizontalScrollElasticity = .none
-        scrollView.verticalScrollElasticity = .allowed
-        scrollView.automaticallyAdjustsContentInsets = false
-        scrollView.contentInsets = NSEdgeInsets()
-        scrollView.scrollerInsets = NSEdgeInsets()
-        scrollView.usesPredominantAxisScrolling = true
-        scrollView.allowsMagnification = false
-
-        let clip = scrollView.contentView
-        clip.drawsBackground = false
-        clip.backgroundColor = .clear
-
-        let hosting = NSHostingView(rootView: AnyView(content()))
-        hosting.sizingOptions = [.intrinsicContentSize]
-        hosting.translatesAutoresizingMaskIntoConstraints = false
-        context.coordinator.hosting = hosting
-        scrollView.documentView = hosting
-
-        NSLayoutConstraint.activate([
-            hosting.leadingAnchor.constraint(equalTo: clip.leadingAnchor),
-            hosting.topAnchor.constraint(equalTo: clip.topAnchor),
-            hosting.trailingAnchor.constraint(equalTo: clip.trailingAnchor),
-            hosting.widthAnchor.constraint(equalTo: clip.widthAnchor),
-        ])
-
-        return scrollView
-    }
-
-    func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        let hosting: NSHostingView<AnyView>
-        if let existing = context.coordinator.hosting {
-            hosting = existing
-        } else if let existing = scrollView.documentView as? NSHostingView<AnyView> {
-            hosting = existing
-            context.coordinator.hosting = hosting
-        } else {
-            return
-        }
-
-        let width = max(scrollView.contentView.bounds.width, SettingsView.panelWidth)
-        guard width > 1 else { return }
-
-        // Pin SwiftUI layout to the clip width so height can grow with content.
-        hosting.rootView = AnyView(
-            content()
-                .frame(width: width, alignment: .topLeading)
-        )
-        hosting.invalidateIntrinsicContentSize()
-        hosting.layoutSubtreeIfNeeded()
-
-        let intrinsic = hosting.intrinsicContentSize
-        let fitting = hosting.fittingSize
-        let height = max(intrinsic.height, fitting.height, 1)
-        let newSize = NSSize(width: width, height: height)
-        if abs(hosting.frame.width - newSize.width) > 0.5
-            || abs(hosting.frame.height - newSize.height) > 0.5 {
-            hosting.setFrameSize(newSize)
-        }
-
-        // Briefly show the overlay scroller once so users notice they can scroll.
-        if !context.coordinator.didFlashScrollers,
-           height > scrollView.contentView.bounds.height + 1 {
-            context.coordinator.didFlashScrollers = true
-            scrollView.flashScrollers()
-        }
     }
 }
 
