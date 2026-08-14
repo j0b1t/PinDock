@@ -28,15 +28,15 @@
 ---
 
 <p align="center">
-  <img src="docs/assets/screenshot-popover.png" width="360" alt="PinDock panel — real app UI">
+  <img src="docs/assets/screenshot-popover.png" width="360" alt="PinDock panel — displays, allowed list, behavior">
 </p>
 
 <p align="center">
-  <em>Real app UI — menu bar panel (glass style).</em>
+  <em>Real app UI — menu bar panel (glass style). Displays · Allowed · Behavior · Permissions · Updates.</em>
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-menubar.png" width="380" alt="PinDock panel with window chrome">
+  <img src="docs/assets/screenshot-menubar.png" width="380" alt="PinDock panel (floating)">
 </p>
 
 ---

@@ -15,18 +15,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         knownDisplayIDs = Set(DisplayManager.shared.displays.map(\.id))
         AppState.shared.refresh()
 
-        // Maintainer helper: `PinDock --ui-preview` opens the panel as a window for screenshots.
-        if CommandLine.arguments.contains("--ui-preview") {
-            NSApp.setActivationPolicy(.regular)
-            showUIPreviewWindow()
-            return
-        }
-
-        setupStatusItem()
-        setupPopover()
-        registerNotifications()
-        LaunchAtLogin.syncFromPreferences()
-
         PinDockEngine.shared.onStateChanged = { [weak self] in
             DispatchQueue.main.async {
                 let prefs = Preferences.shared
@@ -47,6 +35,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             scheduleLoginRestore()
         }
 
+        // Maintainer helper: `PinDock --ui-preview` opens the panel as a window for screenshots.
+        // Engine is started above so the UI matches a real session (no false banners).
+        if CommandLine.arguments.contains("--ui-preview") {
+            NSApp.setActivationPolicy(.regular)
+            AppState.shared.refresh()
+            showUIPreviewWindow()
+            return
+        }
+
+        setupStatusItem()
+        setupPopover()
+        registerNotifications()
+        LaunchAtLogin.syncFromPreferences()
+
         updateStatusIcon()
         // Do not auto-open panel on launch — Control Center style: user opens it.
     }
@@ -62,17 +64,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         let hosting = NSHostingController(rootView: root)
         hosting.view.frame = NSRect(x: 0, y: 0, width: panelW, height: panelH)
 
+        // Borderless panel so screenshots match the real menu-bar popover (no traffic lights).
         let window = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: panelW, height: panelH),
-            styleMask: [.titled, .closable, .fullSizeContentView, .nonactivatingPanel],
+            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
         window.title = "PinDock"
-        window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
         window.isOpaque = false
         window.backgroundColor = .clear
+        window.hasShadow = true
         window.isFloatingPanel = true
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
