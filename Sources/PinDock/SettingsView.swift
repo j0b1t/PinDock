@@ -18,7 +18,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     if state.updateAvailable { updateBanner }
                     if state.dockIsAway { moveBackBanner }
-                    if !state.isTrusted || (state.isEnabled && !state.isRunning) {
+                    if showsAccessibilityBanner {
                         accessibilityBanner
                     }
                     defaultSection
@@ -42,6 +42,12 @@ struct SettingsView: View {
                 state.checkForUpdates(force: false)
             }
         }
+    }
+
+    /// Maintainer: `PinDock --ui-preview-a11y` forces the Accessibility banner for screenshots.
+    private var showsAccessibilityBanner: Bool {
+        if CommandLine.arguments.contains("--ui-preview-a11y") { return true }
+        return !state.isTrusted || (state.isEnabled && !state.isRunning)
     }
 
     // MARK: - Glass
@@ -208,12 +214,14 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 4)
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
                 Button("Grant…") { state.openAccessibility() }
                     .buttonStyle(.borderedProminent)
-                    .controlSize(.mini)
+                    .controlSize(.regular)
+                    .font(.system(size: 12, weight: .medium))
                 Button("Retry") { state.retryEngine() }
-                    .controlSize(.mini)
+                    .controlSize(.regular)
+                    .font(.system(size: 12, weight: .medium))
             }
         }
         .padding(10)
