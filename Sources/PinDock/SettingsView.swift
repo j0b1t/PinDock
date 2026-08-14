@@ -20,7 +20,9 @@ struct SettingsView: View {
                     }
                     defaultSection
                     allowListSection
-                    settingsCard
+                    behaviorSection
+                    permissionsSection
+                    updatesSection
                     footer
                 }
                 .padding(14)
@@ -274,99 +276,130 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Settings
+    // MARK: - Behavior / shortcuts
 
-    private var settingsCard: some View {
-        VStack(spacing: 0) {
-            settingsRow("Move Back", "⌘⇧D") {
-                Text("⌘⇧D")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(.secondary)
-            }
-            Divider().padding(.leading, 12)
-            settingsRow("Modifier", "Hold at bottom edge") {
-                Picker("", selection: $state.modifierKey) {
-                    ForEach(ModifierKey.allCases) { key in
-                        Text(key.shortLabel).tag(key)
+    private var behaviorSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            sectionLabel("Behavior")
+            VStack(spacing: 0) {
+                settingsRow("Move Back", "⌘⇧D") {
+                    Text("⌘⇧D")
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                }
+                Divider().padding(.leading, 12)
+                settingsRow("Modifier", "Hold at bottom edge") {
+                    Picker("", selection: $state.modifierKey) {
+                        ForEach(ModifierKey.allCases) { key in
+                            Text(key.shortLabel).tag(key)
+                        }
                     }
+                    .labelsHidden()
+                    .controlSize(.small)
+                    .frame(width: 100)
                 }
-                .labelsHidden()
-                .controlSize(.small)
-                .frame(width: 100)
-            }
-            Divider().padding(.leading, 12)
-            settingsRow("Restore on wake", "And when monitors change") {
-                Toggle("", isOn: $state.restoreOnWake)
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .controlSize(.small)
-            }
-            Divider().padding(.leading, 12)
-            settingsRow("Launch at login", "Start when you sign in") {
-                Toggle("", isOn: $state.launchAtLogin)
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .controlSize(.small)
-            }
-            Divider().padding(.leading, 12)
-            settingsRow(
-                "Accessibility",
-                state.isTrusted ? "Granted — required for locking" : "Required for locking"
-            ) {
-                if state.isTrusted {
-                    Label("Active", systemImage: "checkmark.circle.fill")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.green)
-                        .labelStyle(.titleAndIcon)
-                } else {
-                    Button("Grant…") { state.openAccessibility() }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.mini)
+                Divider().padding(.leading, 12)
+                settingsRow("Restore on wake", "And when monitors change") {
+                    Toggle("", isOn: $state.restoreOnWake)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                }
+                Divider().padding(.leading, 12)
+                settingsRow("Launch at login", "Start when you sign in") {
+                    Toggle("", isOn: $state.launchAtLogin)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
                 }
             }
-            Divider().padding(.leading, 12)
-            settingsRow("Auto check updates", "Launch & every 12 hours") {
-                Toggle("", isOn: $state.autoCheckForUpdates)
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .controlSize(.small)
-            }
-            Divider().padding(.leading, 12)
-            settingsRow(
-                "Auto install updates",
-                state.autoCheckForUpdates ? "Apply when a new version is found" : "Enable auto check first"
-            ) {
-                Toggle("", isOn: $state.autoInstallUpdates)
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .controlSize(.small)
-                    .disabled(!state.autoCheckForUpdates)
-            }
-            Divider().padding(.leading, 12)
-            settingsRow("Updates", updateSubtitle) {
-                if state.isCheckingUpdate || state.isInstallingUpdate {
-                    ProgressView().controlSize(.regular)
-                } else if state.updateAvailable {
-                    HStack(spacing: 6) {
-                        if state.updateDownloadURL != nil {
-                            Button("Install") { state.installAvailableUpdate() }
+            .background(chipFill)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+    }
+
+    // MARK: - Permissions
+
+    private var permissionsSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            sectionLabel("Permissions")
+            VStack(spacing: 0) {
+                settingsRow(
+                    "Accessibility",
+                    state.isTrusted ? "Granted — required for locking" : "Required for locking"
+                ) {
+                    if state.isTrusted {
+                        Label("Active", systemImage: "checkmark.circle.fill")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.green)
+                            .labelStyle(.titleAndIcon)
+                    } else {
+                        HStack(spacing: 6) {
+                            Button("Grant…") { state.openAccessibility() }
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.regular)
                                 .font(.system(size: 12, weight: .medium))
+                            Button("Retry") { state.retryEngine() }
+                                .controlSize(.regular)
+                                .font(.system(size: 12, weight: .medium))
                         }
-                        Button("View") { state.openReleasePage() }
+                    }
+                }
+            }
+            .background(chipFill)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+    }
+
+    // MARK: - Updates
+
+    private var updatesSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            sectionLabel("Updates")
+            VStack(spacing: 0) {
+                settingsRow("Auto check", "Launch & every 12 hours") {
+                    Toggle("", isOn: $state.autoCheckForUpdates)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                }
+                Divider().padding(.leading, 12)
+                settingsRow(
+                    "Auto install",
+                    state.autoCheckForUpdates ? "Apply when a new version is found" : "Enable auto check first"
+                ) {
+                    Toggle("", isOn: $state.autoInstallUpdates)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                        .disabled(!state.autoCheckForUpdates)
+                }
+                Divider().padding(.leading, 12)
+                settingsRow("Status", updateSubtitle) {
+                    if state.isCheckingUpdate || state.isInstallingUpdate {
+                        ProgressView().controlSize(.regular)
+                    } else if state.updateAvailable {
+                        HStack(spacing: 6) {
+                            if state.updateDownloadURL != nil {
+                                Button("Install") { state.installAvailableUpdate() }
+                                    .buttonStyle(.borderedProminent)
+                                    .controlSize(.regular)
+                                    .font(.system(size: 12, weight: .medium))
+                            }
+                            Button("View") { state.openReleasePage() }
+                                .controlSize(.regular)
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                    } else {
+                        Button("Check") { state.checkForUpdates(force: true) }
                             .controlSize(.regular)
                             .font(.system(size: 12, weight: .medium))
                     }
-                } else {
-                    Button("Check") { state.checkForUpdates(force: true) }
-                        .controlSize(.regular)
-                        .font(.system(size: 12, weight: .medium))
                 }
             }
+            .background(chipFill)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
-        .background(chipFill)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private var updateSubtitle: String {
