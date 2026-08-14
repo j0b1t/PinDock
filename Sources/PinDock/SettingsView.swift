@@ -61,16 +61,43 @@ struct SettingsView: View {
 
     // MARK: - Header
 
+    /// App pin logo without the blue icon background (template → follows light/dark).
+    @ViewBuilder
+    private var headerAppLogo: some View {
+        if let image = Self.headerLogoImage {
+            Image(nsImage: image)
+                .resizable()
+                .interpolation(.high)
+                .renderingMode(.template)
+                .aspectRatio(contentMode: .fit)
+                .foregroundStyle(.primary)
+                .accessibilityLabel("PinDock")
+        } else {
+            Image(systemName: "pin.fill")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.primary)
+                .accessibilityLabel("PinDock")
+        }
+    }
+
+    private static let headerLogoImage: NSImage? = {
+        // Prefer Resources/HeaderLogo.png (+ @2x) from the app bundle.
+        if let named = NSImage(named: "HeaderLogo") {
+            named.isTemplate = true
+            return named
+        }
+        if let url = Bundle.main.url(forResource: "HeaderLogo", withExtension: "png"),
+           let img = NSImage(contentsOf: url) {
+            img.isTemplate = true
+            return img
+        }
+        return nil
+    }()
+
     private var header: some View {
         HStack(spacing: 10) {
-            Image(systemName: "pin.fill")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white)
+            headerAppLogo
                 .frame(width: 28, height: 28)
-                .background(
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(Color.accentColor.gradient)
-                )
             VStack(alignment: .leading, spacing: 1) {
                 Text("PinDock")
                     .font(.system(size: 14, weight: .semibold))

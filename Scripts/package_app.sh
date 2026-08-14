@@ -63,6 +63,15 @@ if [[ -f "${ROOT}/Resources/AppIcon.icns" ]]; then
       "${APP_PATH}/Contents/Info.plist"
 fi
 
+# Header logo (pin mark without blue icon chrome)
+for logo in HeaderLogo.png "HeaderLogo@2x.png"; do
+  if [[ -f "${ROOT}/Resources/${logo}" ]]; then
+    /bin/cp -X "${ROOT}/Resources/${logo}" "${APP_PATH}/Contents/Resources/${logo}" 2>/dev/null \
+      || /bin/cp "${ROOT}/Resources/${logo}" "${APP_PATH}/Contents/Resources/${logo}"
+    xattr -c "${APP_PATH}/Contents/Resources/${logo}" 2>/dev/null || true
+  fi
+done
+
 xattr -cr "${APP_PATH}" 2>/dev/null || true
 find "${APP_PATH}" \( -name '._*' -o -name '.DS_Store' \) -delete 2>/dev/null || true
 
