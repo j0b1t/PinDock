@@ -57,6 +57,27 @@ final class AppState: ObservableObject {
     @Published private(set) var dockIsAway: Bool = false
 
     // Updates (GitHub Releases, optional network)
+    @Published var autoCheckForUpdates: Bool {
+        didSet {
+            Preferences.shared.autoCheckForUpdates = autoCheckForUpdates
+            if autoCheckForUpdates {
+                scheduleAutomaticUpdateChecks(immediate: true)
+            } else {
+                updateCheckTimer?.invalidate()
+                updateCheckTimer = nil
+            }
+        }
+    }
+
+    @Published var autoInstallUpdates: Bool {
+        didSet {
+            Preferences.shared.autoInstallUpdates = autoInstallUpdates
+            if autoInstallUpdates {
+                installIfAutoUpdateEnabled()
+            }
+        }
+    }
+
     @Published private(set) var updateAvailable: Bool = false
     @Published private(set) var latestRemoteVersion: String?
     @Published private(set) var releaseURL: URL?
@@ -71,7 +92,11 @@ final class AppState: ObservableObject {
     var appVersion: String { UpdateChecker.localVersion }
     var appBuild: String { UpdateChecker.localBuild }
 
+    /// Throttle window for background / auto checks (manual Check always forces).
+    static let updateCheckInterval: TimeInterval = 12 * 3600
+
     private var pollTimer: Timer?
+    private var updateCheckTimer: Timer?
     private var lastAutoEjectAt: CFAbsoluteTime = 0
 
     private init() {
@@ -83,8 +108,11 @@ final class AppState: ObservableObject {
         restoreOnWake = prefs.restoreOnWake
         launchAtLogin = LaunchAtLogin.isEnabled
         blockedDisplayIDs = prefs.blockedDisplayIDs
+        autoCheckForUpdates = prefs.autoCheckForUpdates
+        autoInstallUpdates = prefs.autoInstallUpdates
         refresh()
         startPolling()
+        scheduleAutomaticUpdateChecks(immediate: false)
     }
 
     private func startPolling() {
@@ -94,6 +122,27 @@ final class AppState: ObservableObject {
         }
         if let pollTimer {
             RunLoop.main.add(pollTimer, forMode: .common)
+        }
+    }
+
+    /// Delayed first check after launch + hourly tick that only hits the network when due.
+    func scheduleAutomaticUpdateChecks(immediate: Bool) {
+        updateCheckTimer?.invalidate()
+        guard autoCheckForUpdates else { return }
+
+        let firstDelay: TimeInterval = immediate ? 2 : 10
+        DispatchQueue.main.asyncAfter(deadline: .now() + firstDelay) { [weak self] in
+            self?.checkForUpdates(force: false)
+        }
+
+        updateCheckTimer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { [weak self] _ in
+            DispatchQueue.main.async {
+                guard let self, self.autoCheckForUpdates else { return }
+                self.checkForUpdates(force: false)
+            }
+        }
+        if let updateCheckTimer {
+            RunLoop.main.add(updateCheckTimer, forMode: .common)
         }
     }
 
@@ -355,8 +404,11 @@ final class AppState: ObservableObject {
     /// Check GitHub Releases. Throttled to once per 12h unless `force`.
     func checkForUpdates(force: Bool = false) {
         let now = Date().timeIntervalSince1970
-        if !force, now - Preferences.shared.lastUpdateCheckAt < 12 * 3600,
-           latestRemoteVersion != nil || updateAvailable {
+        if !force, now - Preferences.shared.lastUpdateCheckAt < Self.updateCheckInterval {
+            // Already checked recently — still honor auto-install if we know an update exists.
+            if updateAvailable {
+                installIfAutoUpdateEnabled()
+            }
             return
         }
         guard !isCheckingUpdate else { return }
@@ -380,7 +432,11 @@ final class AppState: ObservableObject {
             self.updateDownloadIsZip = result.downloadIsZip
             self.updateAvailable = result.isNewer
             self.updateErrorMessage = ""
-            if !result.isNewer {
+            if result.isNewer {
+                self.updateCheckIdleMessage = ""
+                NSLog("PinDock: update available \(UpdateChecker.localVersion) → \(result.latestVersion)")
+                self.installIfAutoUpdateEnabled()
+            } else {
                 self.updateCheckIdleMessage = "Up to date"
             }
         }
@@ -389,6 +445,13 @@ final class AppState: ObservableObject {
     func openReleasePage() {
         let url = releaseURL ?? UpdateChecker.releasesURL
         NSWorkspace.shared.open(url)
+    }
+
+    /// If Auto Install is on and a download URL is known, start install.
+    private func installIfAutoUpdateEnabled() {
+        guard autoInstallUpdates, updateAvailable, updateDownloadURL != nil, !isInstallingUpdate else { return }
+        NSLog("PinDock: auto-installing update \(latestRemoteVersion ?? "?")")
+        installAvailableUpdate()
     }
 
     /// Download the release ZIP (or DMG), replace the app, relaunch.

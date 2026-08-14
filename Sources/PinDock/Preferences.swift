@@ -51,6 +51,8 @@ final class Preferences {
         static let triggerZonePixels = "triggerZonePixels"
         static let blockedDisplayIDs = "blockedDisplayIDs"
         static let lastUpdateCheckAt = "lastUpdateCheckAt"
+        static let autoCheckForUpdates = "autoCheckForUpdates"
+        static let autoInstallUpdates = "autoInstallUpdates"
         // Legacy key migration
         static let legacyAnchor = "anchorDisplayID"
     }
@@ -153,6 +155,21 @@ final class Preferences {
     var lastUpdateCheckAt: TimeInterval {
         get { defaults.double(forKey: Keys.lastUpdateCheckAt) }
         set { defaults.set(newValue, forKey: Keys.lastUpdateCheckAt) }
+    }
+
+    /// Check GitHub Releases on launch and periodically (default on).
+    var autoCheckForUpdates: Bool {
+        get {
+            if defaults.object(forKey: Keys.autoCheckForUpdates) == nil { return true }
+            return defaults.bool(forKey: Keys.autoCheckForUpdates)
+        }
+        set { defaults.set(newValue, forKey: Keys.autoCheckForUpdates) }
+    }
+
+    /// When a newer release is found, download and install without asking (default off).
+    var autoInstallUpdates: Bool {
+        get { defaults.bool(forKey: Keys.autoInstallUpdates) }
+        set { defaults.set(newValue, forKey: Keys.autoInstallUpdates) }
     }
 
     var triggerZonePixels: CGFloat {

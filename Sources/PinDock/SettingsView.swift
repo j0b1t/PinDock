@@ -32,7 +32,10 @@ struct SettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .onAppear {
             state.refresh()
-            state.checkForUpdates(force: false)
+            // Background auto-check also runs from AppState; this refreshes when the panel opens.
+            if state.autoCheckForUpdates {
+                state.checkForUpdates(force: false)
+            }
         }
     }
 
@@ -322,6 +325,24 @@ struct SettingsView: View {
                 }
             }
             Divider().padding(.leading, 12)
+            settingsRow("Auto check updates", "Launch & every 12 hours") {
+                Toggle("", isOn: $state.autoCheckForUpdates)
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .controlSize(.small)
+            }
+            Divider().padding(.leading, 12)
+            settingsRow(
+                "Auto install updates",
+                state.autoCheckForUpdates ? "Apply when a new version is found" : "Enable auto check first"
+            ) {
+                Toggle("", isOn: $state.autoInstallUpdates)
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .controlSize(.small)
+                    .disabled(!state.autoCheckForUpdates)
+            }
+            Divider().padding(.leading, 12)
             settingsRow("Updates", updateSubtitle) {
                 if state.isCheckingUpdate || state.isInstallingUpdate {
                     ProgressView().controlSize(.regular)
@@ -349,8 +370,11 @@ struct SettingsView: View {
     }
 
     private var updateSubtitle: String {
+        if state.isInstallingUpdate {
+            return "Installing…"
+        }
         if state.updateAvailable, let v = state.latestRemoteVersion {
-            return "\(v) available"
+            return state.autoInstallUpdates ? "\(v) — auto install" : "\(v) available"
         }
         if !state.updateCheckIdleMessage.isEmpty {
             return state.updateCheckIdleMessage
