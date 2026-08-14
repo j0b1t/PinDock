@@ -476,12 +476,13 @@ struct DisplayAllowRow: View {
                 onSetDefault()
             }
             .buttonStyle(.bordered)
-            .controlSize(.mini)
+            .controlSize(.regular)
+            .font(.system(size: 12, weight: .medium))
             .disabled(!isAllowed || isDefault)
             .help("Status only — does not move the Dock")
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 7)
+        .padding(.vertical, 9)
         .opacity(isAllowed ? 1 : 0.6)
     }
 
