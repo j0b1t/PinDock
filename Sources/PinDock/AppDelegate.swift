@@ -55,13 +55,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var previewWindow: NSWindow?
 
     private func showUIPreviewWindow() {
+        let w = SettingsView.panelWidth
+        let h = SettingsView.panelMaxHeight
         let root = SettingsView(state: AppState.shared)
-            .frame(width: 360, height: 520)
+            .frame(width: w, height: h)
         let hosting = NSHostingController(rootView: root)
-        hosting.view.frame = NSRect(x: 0, y: 0, width: 360, height: 520)
+        hosting.view.frame = NSRect(x: 0, y: 0, width: w, height: h)
 
         let window = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 360, height: 520),
+            contentRect: NSRect(x: 0, y: 0, width: w, height: h),
             styleMask: [.titled, .closable, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -75,7 +77,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.contentViewController = hosting
-        window.setContentSize(NSSize(width: 360, height: 520))
+        window.setContentSize(NSSize(width: w, height: h))
         window.isReleasedWhenClosed = false
         window.center()
         window.makeKeyAndOrderFront(nil)
@@ -201,7 +203,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         }
 
         // Content size matches SettingsView ideal size
-        popover?.contentSize = NSSize(width: 360, height: 520)
+        popover?.contentSize = NSSize(
+            width: SettingsView.panelWidth,
+            height: SettingsView.panelMaxHeight
+        )
 
         NSApp.activate(ignoringOtherApps: true)
         popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
