@@ -113,10 +113,12 @@ struct SettingsView: View {
                         if state.updateDownloadURL != nil {
                             Button("Install") { state.installAvailableUpdate() }
                                 .buttonStyle(.borderedProminent)
-                                .controlSize(.small)
+                                .controlSize(.regular)
+                                .font(.system(size: 12, weight: .medium))
                         }
                         Button("View") { state.openReleasePage() }
-                            .controlSize(.small)
+                            .controlSize(.regular)
+                            .font(.system(size: 12, weight: .medium))
                     }
                 }
             }
@@ -322,20 +324,23 @@ struct SettingsView: View {
             Divider().padding(.leading, 12)
             settingsRow("Updates", updateSubtitle) {
                 if state.isCheckingUpdate || state.isInstallingUpdate {
-                    ProgressView().controlSize(.mini)
+                    ProgressView().controlSize(.regular)
                 } else if state.updateAvailable {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         if state.updateDownloadURL != nil {
                             Button("Install") { state.installAvailableUpdate() }
                                 .buttonStyle(.borderedProminent)
-                                .controlSize(.mini)
+                                .controlSize(.regular)
+                                .font(.system(size: 12, weight: .medium))
                         }
                         Button("View") { state.openReleasePage() }
-                            .controlSize(.mini)
+                            .controlSize(.regular)
+                            .font(.system(size: 12, weight: .medium))
                     }
                 } else {
                     Button("Check") { state.checkForUpdates(force: true) }
-                        .controlSize(.mini)
+                        .controlSize(.regular)
+                        .font(.system(size: 12, weight: .medium))
                 }
             }
         }
