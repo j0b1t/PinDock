@@ -7,6 +7,9 @@ struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     private let panelWidth: CGFloat = 360
+    /// Tall enough that Displays → Allowed → Behavior fit without scrolling
+    /// when no banners are showing (Permissions / Updates may still scroll).
+    private let panelMaxHeight: CGFloat = 680
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,7 +32,7 @@ struct SettingsView: View {
             }
         }
         .frame(width: panelWidth)
-        .frame(maxHeight: 520)
+        .frame(maxHeight: panelMaxHeight)
         .background { glassBackground }
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .onAppear {
