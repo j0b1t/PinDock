@@ -55,6 +55,9 @@ Open source — not Apple-notarized (no paid developer fee).
    **Right‑click → Open → Open**, or **System Settings → Privacy & Security → Open Anyway**  
 5. **System Settings → Privacy & Security → Accessibility** → enable PinDock  
 
+### Updates
+In-app install verifies **GitHub host**, optional **SHA-256** (this note), **codesign**, and bundle id before replacing the app.
+
 ### Support
 Lightning: \`j0b1t@strike.me\` · [Ko‑fi](https://ko-fi.com/j0b1t)
 
