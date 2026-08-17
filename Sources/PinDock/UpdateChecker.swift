@@ -225,18 +225,21 @@ enum AppUpdater {
 
         let session = URLSession(configuration: .default)
         let task = session.downloadTask(with: url) { tempURL, response, error in
-            guard error == nil,
-                  let tempURL,
-                  let http = response as? HTTPURLResponse,
-                  (200...299).contains(http.statusCode) else {
+            // Move the temp download out immediately — the system may delete it when this handler returns.
+            guard error == nil, let tempURL else {
                 DispatchQueue.main.async { completion(.failure(UpdateError.downloadFailed)) }
                 return
             }
-
-            // Final response URL must still be on the allow-list (redirects).
-            if let finalURL = http.url, !UpdateChecker.isAllowedDownloadURL(finalURL) {
-                DispatchQueue.main.async { completion(.failure(UpdateError.blockedURL)) }
-                return
+            if let http = response as? HTTPURLResponse {
+                guard (200...299).contains(http.statusCode) else {
+                    DispatchQueue.main.async { completion(.failure(UpdateError.downloadFailed)) }
+                    return
+                }
+                // Final response URL must still be on the allow-list (redirects).
+                if let finalURL = http.url, !UpdateChecker.isAllowedDownloadURL(finalURL) {
+                    DispatchQueue.main.async { completion(.failure(UpdateError.blockedURL)) }
+                    return
+                }
             }
 
             let workRoot = FileManager.default.temporaryDirectory
@@ -246,7 +249,13 @@ enum AppUpdater {
                 let ext = isZip ? "zip" : "dmg"
                 let archive = workRoot.appendingPathComponent("PinDock-update.\(ext)")
                 try? FileManager.default.removeItem(at: archive)
-                try FileManager.default.moveItem(at: tempURL, to: archive)
+                do {
+                    try FileManager.default.moveItem(at: tempURL, to: archive)
+                } catch {
+                    // Cross-volume fallback
+                    try FileManager.default.copyItem(at: tempURL, to: archive)
+                    try? FileManager.default.removeItem(at: tempURL)
+                }
 
                 if let expected = expectedSHA256?.lowercased(), expected.count == 64 {
                     let actual = try sha256Hex(of: archive)
@@ -265,10 +274,13 @@ enum AppUpdater {
                 try verifyAppBundle(at: extractedApp)
 
                 let installTarget = try resolvedInstallTarget()
-                try runInstallScript(sourceApp: extractedApp.path, installTarget: installTarget)
-
-                // Cleanup best-effort (install script also removes archive via parent dir later)
-                try? FileManager.default.removeItem(at: workRoot)
+                // IMPORTANT: do NOT delete workRoot here — the async install script still needs SRC.
+                // The script removes workRoot after a successful install.
+                try runInstallScript(
+                    sourceApp: extractedApp.path,
+                    installTarget: installTarget,
+                    workRoot: workRoot.path
+                )
 
                 DispatchQueue.main.async { completion(.success(())) }
             } catch let err as UpdateError {
@@ -508,43 +520,66 @@ enum AppUpdater {
 
     // MARK: - Apply
 
-    /// Minimal install helper: wait for quit, replace app, clear quarantine only, reopen.
-    private static func runInstallScript(sourceApp: String, installTarget: String) throws {
+    /// Async helper: wait for PinDock to quit, replace app, clear quarantine only, reopen.
+    /// Keeps `workRoot` until after install so SRC is not deleted early (previous bug).
+    private static func runInstallScript(sourceApp: String, installTarget: String, workRoot: String) throws {
+        let logPath = "/tmp/pindock-update.log"
         let script = """
         #!/bin/bash
         set -euo pipefail
         SRC=\(shellEscape(sourceApp))
         DEST=\(shellEscape(installTarget))
+        WORK=\(shellEscape(workRoot))
         APP_NAME='PinDock'
+        LOG=\(shellEscape(logPath))
+        exec >>"$LOG" 2>&1
+        echo "==== $(date) apply update ===="
+        echo "SRC=$SRC"
+        echo "DEST=$DEST"
+        echo "WORK=$WORK"
 
-        for i in $(seq 1 50); do
-          if ! pgrep -x "$APP_NAME" >/dev/null 2>&1; then break; fi
-          sleep 0.2
+        # Wait for the running app to exit (we terminate after launching this script).
+        for i in $(seq 1 80); do
+          if ! pgrep -x "$APP_NAME" >/dev/null 2>&1; then
+            echo "PinDock not running (waited ${i} ticks)"
+            break
+          fi
+          sleep 0.25
         done
-        sleep 0.3
+        sleep 0.5
 
         if [[ ! -d "$SRC" ]]; then
-          echo "source app missing" >&2
+          echo "ERROR: source app missing: $SRC"
           exit 1
         fi
 
         # Destination must stay under /Applications
         case "$DEST" in
           /Applications/*PinDock.app) ;;
-          *) echo "invalid dest" >&2; exit 1 ;;
+          *) echo "ERROR: invalid dest $DEST"; exit 1 ;;
         esac
 
+        # Stage to a sibling path first, then swap — avoids a half-deleted app if we crash mid-copy.
+        STAGE="$(dirname "$DEST")/.PinDock-update-staging.app"
+        rm -rf "$STAGE"
+        /usr/bin/ditto --norsrc --noextattr "$SRC" "$STAGE"
+        /usr/bin/codesign --verify "$STAGE" || { echo "ERROR: staged codesign failed"; rm -rf "$STAGE"; exit 1; }
+
         rm -rf "$DEST"
-        /usr/bin/ditto --norsrc --noextattr "$SRC" "$DEST"
+        mv "$STAGE" "$DEST"
 
         # Quarantine only (do not wipe all extended attributes)
         /usr/bin/xattr -d com.apple.quarantine "$DEST" 2>/dev/null || true
         /usr/bin/xattr -dr com.apple.quarantine "$DEST" 2>/dev/null || true
 
-        # Re-verify after copy
-        /usr/bin/codesign --verify "$DEST" || { echo "post-install codesign failed" >&2; exit 1; }
+        /usr/bin/codesign --verify "$DEST" || { echo "ERROR: post-install codesign failed"; exit 1; }
 
+        echo "install OK → opening"
         /usr/bin/open "$DEST"
+
+        # Safe to remove extract/download tree now
+        rm -rf "$WORK"
+        echo "done"
         """
 
         let scriptURL = FileManager.default.temporaryDirectory
@@ -552,14 +587,19 @@ enum AppUpdater {
         try script.write(to: scriptURL, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptURL.path)
 
-        let proc = Process()
-        proc.executableURL = URL(fileURLWithPath: "/bin/bash")
-        proc.arguments = [scriptURL.path]
-        proc.standardOutput = FileHandle.nullDevice
-        proc.standardError = FileHandle.nullDevice
-        try proc.run()
+        // Detach from this process group so quitting PinDock does not kill the installer.
+        // Outer shell backgrounds the helper and exits immediately.
+        let launcher = Process()
+        launcher.executableURL = URL(fileURLWithPath: "/bin/bash")
+        launcher.arguments = [
+            "-c",
+            "(/bin/bash \(shellEscape(scriptURL.path))) >/dev/null 2>&1 &",
+        ]
+        try launcher.run()
+        launcher.waitUntilExit()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+        NSLog("PinDock: install helper launched (log \(logPath)); quitting for replace")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             NSApp.terminate(nil)
         }
     }
