@@ -395,7 +395,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 6) {
             sectionLabel("Updates")
             VStack(spacing: 0) {
-                settingsRow("Auto check", "Launch & every 12 hours") {
+                settingsRow("Auto check", "Off by default · launch & every 12h when on") {
                     Toggle("", isOn: $state.autoCheckForUpdates)
                         .toggleStyle(.switch)
                         .labelsHidden()
@@ -404,7 +404,9 @@ struct SettingsView: View {
                 Divider().padding(.leading, 12)
                 settingsRow(
                     "Auto install",
-                    state.autoCheckForUpdates ? "Apply when a new version is found" : "Enable auto check first"
+                    state.autoCheckForUpdates
+                        ? "Verified GitHub ZIP only (SHA + codesign)"
+                        : "Enable auto check first"
                 ) {
                     Toggle("", isOn: $state.autoInstallUpdates)
                         .toggleStyle(.switch)

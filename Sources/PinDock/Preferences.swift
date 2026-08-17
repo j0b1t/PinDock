@@ -157,10 +157,11 @@ final class Preferences {
         set { defaults.set(newValue, forKey: Keys.lastUpdateCheckAt) }
     }
 
-    /// Check GitHub Releases on launch and periodically (default on).
+    /// Check GitHub Releases on launch and periodically.
+    /// Default **off** (offline-first); user can enable explicitly.
     var autoCheckForUpdates: Bool {
         get {
-            if defaults.object(forKey: Keys.autoCheckForUpdates) == nil { return true }
+            if defaults.object(forKey: Keys.autoCheckForUpdates) == nil { return false }
             return defaults.bool(forKey: Keys.autoCheckForUpdates)
         }
         set { defaults.set(newValue, forKey: Keys.autoCheckForUpdates) }

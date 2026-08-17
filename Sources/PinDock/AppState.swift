@@ -83,6 +83,7 @@ final class AppState: ObservableObject {
     @Published private(set) var releaseURL: URL?
     @Published private(set) var updateDownloadURL: URL?
     @Published private(set) var updateDownloadIsZip: Bool = true
+    @Published private(set) var updateExpectedSHA256: String?
     @Published private(set) var isCheckingUpdate: Bool = false
     @Published private(set) var isInstallingUpdate: Bool = false
     @Published private(set) var updateProgress: Double = 0
@@ -430,11 +431,15 @@ final class AppState: ObservableObject {
             self.releaseURL = result.htmlURL
             self.updateDownloadURL = result.downloadURL
             self.updateDownloadIsZip = result.downloadIsZip
+            self.updateExpectedSHA256 = result.expectedSHA256
             self.updateAvailable = result.isNewer
             self.updateErrorMessage = ""
             if result.isNewer {
                 self.updateCheckIdleMessage = ""
-                NSLog("PinDock: update available \(UpdateChecker.localVersion) → \(result.latestVersion)")
+                NSLog(
+                    "PinDock: update available \(UpdateChecker.localVersion) → \(result.latestVersion)"
+                        + (result.expectedSHA256 != nil ? " (sha256 present)" : " (no sha256 in notes)")
+                )
                 self.installIfAutoUpdateEnabled()
             } else {
                 self.updateCheckIdleMessage = "Up to date"
@@ -444,6 +449,10 @@ final class AppState: ObservableObject {
 
     func openReleasePage() {
         let url = releaseURL ?? UpdateChecker.releasesURL
+        guard UpdateChecker.isAllowedDownloadURL(url) else {
+            NSWorkspace.shared.open(UpdateChecker.releasesURL)
+            return
+        }
         NSWorkspace.shared.open(url)
     }
 
@@ -454,10 +463,14 @@ final class AppState: ObservableObject {
         installAvailableUpdate()
     }
 
-    /// Download the release ZIP (or DMG), replace the app, relaunch.
+    /// Download the release ZIP (or DMG), verify, replace the app, relaunch.
     func installAvailableUpdate() {
         guard updateAvailable, let url = updateDownloadURL else {
             updateErrorMessage = "No download available — open the release page instead."
+            return
+        }
+        guard UpdateChecker.isAllowedDownloadURL(url) else {
+            updateErrorMessage = "Blocked download URL (not GitHub)."
             return
         }
         guard !isInstallingUpdate else { return }
@@ -465,18 +478,24 @@ final class AppState: ObservableObject {
         updateProgress = 0
         updateErrorMessage = ""
 
-        AppUpdater.install(from: url, isZip: updateDownloadIsZip, progress: { [weak self] p in
-            self?.updateProgress = p
-        }, completion: { [weak self] result in
-            guard let self else { return }
-            self.isInstallingUpdate = false
-            switch result {
-            case .success:
-                break
-            case .failure(let error):
-                self.updateErrorMessage = error.localizedDescription
-                NSLog("PinDock: update failed — \(error.localizedDescription)")
+        AppUpdater.install(
+            from: url,
+            isZip: updateDownloadIsZip,
+            expectedSHA256: updateExpectedSHA256,
+            progress: { [weak self] p in
+                self?.updateProgress = p
+            },
+            completion: { [weak self] result in
+                guard let self else { return }
+                self.isInstallingUpdate = false
+                switch result {
+                case .success:
+                    break
+                case .failure(let error):
+                    self.updateErrorMessage = error.localizedDescription
+                    NSLog("PinDock: update failed — \(error.localizedDescription)")
+                }
             }
-        })
+        )
     }
 }
