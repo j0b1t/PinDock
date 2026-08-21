@@ -47,8 +47,9 @@ struct SettingsView: View {
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            ScrollView(.vertical, showsIndicators: true) {
+            .padding(.top, 4)
+            .padding(.bottom, 10)
+            ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 14) {
                     if compactTab == .dock {
                         if state.updateAvailable { updateBanner }
@@ -69,8 +70,8 @@ struct SettingsView: View {
                 .padding(.bottom, 14)
             }
         }
-        .frame(width: panelWidth)
-        .frame(maxHeight: compactTab == .dock ? 560 : panelMaxHeight)
+        // Fixed size so the popover does not jump when switching Dock / Settings.
+        .frame(width: panelWidth, height: 540)
         .background { glassBackground }
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
@@ -101,43 +102,9 @@ struct SettingsView: View {
 
     // MARK: - Header
 
-    /// App pin logo without the blue icon background (template → follows light/dark).
-    @ViewBuilder
-    private var headerAppLogo: some View {
-        if let image = Self.headerLogoImage {
-            Image(nsImage: image)
-                .resizable()
-                .interpolation(.high)
-                .renderingMode(.template)
-                .aspectRatio(contentMode: .fit)
-                .foregroundStyle(.primary)
-                .accessibilityLabel("PinDock")
-        } else {
-            Image(systemName: "pin.fill")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.primary)
-                .accessibilityLabel("PinDock")
-        }
-    }
-
-    private static let headerLogoImage: NSImage? = {
-        // Prefer Resources/HeaderLogo.png (+ @2x) from the app bundle.
-        if let named = NSImage(named: "HeaderLogo") {
-            named.isTemplate = true
-            return named
-        }
-        if let url = Bundle.main.url(forResource: "HeaderLogo", withExtension: "png"),
-           let img = NSImage(contentsOf: url) {
-            img.isTemplate = true
-            return img
-        }
-        return nil
-    }()
-
     private var header: some View {
         HStack(spacing: 10) {
-            headerAppLogo
-                .frame(width: 28, height: 28)
+            PinDockMark(size: 26)
             VStack(alignment: .leading, spacing: 1) {
                 Text("PinDock")
                     .font(.system(size: 14, weight: .semibold))
@@ -147,18 +114,11 @@ struct SettingsView: View {
                     .lineLimit(2)
             }
             Spacer(minLength: 6)
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(state.isEnabled && state.isRunning ? Color.green : Color.secondary.opacity(0.4))
-                    .frame(width: 7, height: 7)
-                Text(state.isEnabled ? L10n.t("on") : L10n.t("off"))
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
+            PinDockStatusChip(state: state)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(.ultraThinMaterial.opacity(0.55))
+        .background(.ultraThinMaterial.opacity(0.45))
     }
 
     // MARK: - Banners

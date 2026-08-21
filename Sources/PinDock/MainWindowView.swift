@@ -44,28 +44,57 @@ struct MainWindowView: View {
         }
     }
 
-    @State private var sidebarExpanded = true
-
-    private var sidebarWidth: CGFloat { sidebarExpanded ? 216 : 56 }
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
-        HStack(spacing: 0) {
-            sidebar
-                .frame(width: sidebarWidth)
-                .frame(maxHeight: .infinity)
-            Divider().opacity(0.35)
-            VStack(spacing: 0) {
-                chromeBar
-                Divider().opacity(0.35)
-                detail
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            List(selection: $pane) {
+                ForEach(WindowPane.allCases) { item in
+                    Label {
+                        Text(item.title)
+                    } icon: {
+                        if item == .general {
+                            PinDockMark(size: 16)
+                        } else {
+                            Image(systemName: item.symbol)
+                        }
+                    }
+                    .tag(item)
+                    .help(item.title)
+                }
+            }
+            .listStyle(.sidebar)
+            .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
+        } detail: {
+            detail
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .background { windowGlass }
+        }
+        .navigationSplitViewStyle(.automatic)
+        .navigationTitle("")
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                HStack(spacing: 10) {
+                    PinDockMark(size: 22)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("PinDock")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(pane == .general ? state.statusLine : pane.title)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                PinDockStatusChip(state: state)
             }
         }
+        .toolbarBackground(.ultraThinMaterial, for: .windowToolbar)
         .background { windowGlass }
         .frame(minWidth: 780, minHeight: 520)
         .frame(idealWidth: 920, idealHeight: 640)
         .id(state.appLanguage)
-        .animation(.easeInOut(duration: 0.18), value: sidebarExpanded)
     }
 
     /// Same Control-Center glass as the menu-bar panel.
@@ -73,101 +102,8 @@ struct MainWindowView: View {
         ZStack {
             Rectangle().fill(.ultraThinMaterial)
             Rectangle()
-                .fill(Color.white.opacity(0.06))
+                .fill(Color.white.opacity(0.08))
                 .blendMode(.plusLighter)
-        }
-    }
-
-    /// Logo + name sit flush against the sidebar; on/off stays on the trailing edge.
-    private var chromeBar: some View {
-        HStack(spacing: 8) {
-            appIcon
-                .frame(width: 22, height: 22)
-                .clipShape(Circle())
-
-            Text("PinDock")
-                .font(.system(size: 13, weight: .semibold))
-
-            if pane != .general {
-                Text(pane.title)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer(minLength: 12)
-
-            Toggle(isOn: $state.isEnabled) {
-                Text(state.isEnabled ? L10n.t("on") : L10n.t("off"))
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
-            .toggleStyle(.switch)
-            .controlSize(.small)
-            .help(state.statusLine)
-        }
-        .padding(.leading, 10)
-        .padding(.trailing, 12)
-        .padding(.vertical, 8)
-        .background(.ultraThinMaterial)
-    }
-
-    private var sidebar: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                if sidebarExpanded {
-                    Spacer().frame(width: 68) // traffic lights
-                }
-                Button {
-                    sidebarExpanded.toggle()
-                } label: {
-                    Image(systemName: "sidebar.leading")
-                        .font(.system(size: 13, weight: .medium))
-                        .frame(width: 28, height: 22)
-                }
-                .buttonStyle(.plain)
-                .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
-                Spacer(minLength: 0)
-            }
-            .padding(.top, sidebarExpanded ? 6 : 34)
-            .padding(.bottom, 4)
-            .padding(.horizontal, sidebarExpanded ? 6 : 0)
-
-            List(selection: $pane) {
-                ForEach(WindowPane.allCases) { item in
-                    if sidebarExpanded {
-                        Label(item.title, systemImage: item.symbol)
-                            .tag(item)
-                            .help(item.title)
-                    } else {
-                        Image(systemName: item.symbol)
-                            .font(.system(size: 14, weight: .medium))
-                            .frame(maxWidth: .infinity)
-                            .tag(item)
-                            .help(item.title)
-                    }
-                }
-            }
-            .listStyle(.sidebar)
-            .scrollContentBackground(.hidden)
-        }
-        .background(.ultraThinMaterial)
-    }
-
-    @ViewBuilder
-    private var appIcon: some View {
-        if let icon = NSApp.applicationIconImage {
-            Image(nsImage: icon)
-                .resizable()
-                .interpolation(.high)
-                .aspectRatio(contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-        } else if let image = NSImage(named: "HeaderLogo") {
-            Image(nsImage: image)
-                .resizable()
-                .renderingMode(.template)
-                .aspectRatio(contentMode: .fit)
-        } else {
-            Image(systemName: "pin.fill")
         }
     }
 
@@ -482,7 +418,7 @@ struct MainWindowView: View {
     private var aboutPage: some View {
         page(title: L10n.t("pane.about"), subtitle: L10n.t("about.subtitle")) {
             HStack(alignment: .center, spacing: 16) {
-                appIcon.frame(width: 64, height: 64)
+                PinDockMark(size: 56)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("PinDock")
                         .font(.system(size: 20, weight: .semibold))

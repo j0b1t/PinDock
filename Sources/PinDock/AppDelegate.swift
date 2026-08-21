@@ -226,8 +226,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             popover?.appearance = NSAppearance(named: appearance == .darkAqua ? .vibrantDark : .vibrantLight)
         }
 
-        // Content size matches SettingsView ideal size (Behavior visible without scroll)
-        popover?.contentSize = NSSize(width: 360, height: 680)
+        // Matches SettingsView compact frame (fixed, so Dock/Settings tabs don’t resize the popover).
+        popover?.contentSize = NSSize(width: 360, height: 540)
 
         NSApp.activate(ignoringOtherApps: true)
         popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
@@ -347,13 +347,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: Self.defaultWindowSize),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.title = "PinDock"
         window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
+        window.titlebarAppearsTransparent = false
         window.isReleasedWhenClosed = false
         window.contentViewController = hosting
         window.contentMinSize = Self.minWindowSize
@@ -361,7 +361,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         window.delegate = self
         window.center()
         // Autosave only after a valid default frame is applied, then reject tiny restores.
-        window.setFrameAutosaveName("PinDockMainWindow.v4")
+        window.setFrameAutosaveName("PinDockMainWindow.v5")
         ensureComfortableWindowFrame(window)
         return window
     }
