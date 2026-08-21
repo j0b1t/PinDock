@@ -325,29 +325,63 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 
     private func showMainWindow() {
         if mainWindow == nil {
-            let hosting = NSHostingController(rootView: SettingsView(state: AppState.shared, compact: false))
-            let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 920, height: 640),
-                styleMask: [.titled, .closable, .miniaturizable, .resizable],
-                backing: .buffered,
-                defer: false
-            )
-            window.title = "PinDock"
-            window.titlebarAppearsTransparent = false
-            window.isReleasedWhenClosed = false
-            window.contentViewController = hosting
-            window.contentMinSize = NSSize(width: 780, height: 520)
-            window.setFrameAutosaveName("PinDockMainWindow.v3")
-            window.delegate = self
-            window.center()
-            mainWindow = window
+            mainWindow = makeMainWindow()
         }
         AppState.shared.refresh()
         if AppState.shared.autoCheckForUpdates {
             AppState.shared.checkForUpdates(force: false)
         }
-        mainWindow?.makeKeyAndOrderFront(nil)
+        guard let window = mainWindow else { return }
+        ensureComfortableWindowFrame(window)
+        window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private static let defaultWindowSize = NSSize(width: 920, height: 640)
+    private static let minWindowSize = NSSize(width: 780, height: 520)
+
+    private func makeMainWindow() -> NSWindow {
+        let hosting = NSHostingController(rootView: SettingsView(state: AppState.shared, compact: false))
+        // Do not let SwiftUI shrink the window to the compact popover’s intrinsic size.
+        hosting.sizingOptions = []
+
+        let window = NSWindow(
+            contentRect: NSRect(origin: .zero, size: Self.defaultWindowSize),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "PinDock"
+        window.titlebarAppearsTransparent = false
+        window.isReleasedWhenClosed = false
+        window.contentViewController = hosting
+        window.contentMinSize = Self.minWindowSize
+        window.setContentSize(Self.defaultWindowSize)
+        window.delegate = self
+        window.center()
+        // Autosave only after a valid default frame is applied, then reject tiny restores.
+        window.setFrameAutosaveName("PinDockMainWindow.v4")
+        ensureComfortableWindowFrame(window)
+        return window
+    }
+
+    /// Autosave / SwiftUI can leave a tiny frame; bump back to a usable size.
+    private func ensureComfortableWindowFrame(_ window: NSWindow) {
+        let frame = window.frame
+        let tooSmall = frame.width < Self.minWindowSize.width - 1
+            || frame.height < Self.minWindowSize.height - 1
+        if tooSmall {
+            var next = frame
+            next.size = Self.defaultWindowSize
+            if let screen = window.screen ?? NSScreen.main {
+                let vis = screen.visibleFrame
+                next.size.width = min(next.size.width, vis.width - 40)
+                next.size.height = min(next.size.height, vis.height - 40)
+                next.origin.x = vis.midX - next.size.width / 2
+                next.origin.y = vis.midY - next.size.height / 2
+            }
+            window.setFrame(next, display: true)
+        }
     }
 
     @objc private func onWake() {

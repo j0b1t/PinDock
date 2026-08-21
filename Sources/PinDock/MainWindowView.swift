@@ -96,6 +96,8 @@ struct MainWindowView: View {
             }
         }
         .background(.ultraThinMaterial)
+        .frame(minWidth: 780, minHeight: 520)
+        .frame(idealWidth: 920, idealHeight: 640)
         .id(state.appLanguage)
     }
 
