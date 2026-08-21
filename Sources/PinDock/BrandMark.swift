@@ -42,14 +42,16 @@ struct PinDockStatusChip: View {
     @ObservedObject var state: AppState
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 8) {
             Circle()
                 .fill(state.isEnabled && state.isRunning ? Color.green : Color.secondary.opacity(0.4))
-                .frame(width: 7, height: 7)
+                .frame(width: 9, height: 9)
             Text(state.isEnabled ? L10n.t("on") : L10n.t("off"))
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.primary)
         }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
         .help(state.statusLine)
     }
 }

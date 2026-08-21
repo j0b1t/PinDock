@@ -62,29 +62,33 @@ struct MainWindowView: View {
         .frame(minWidth: 560, minHeight: 400)
         .toolbar {
             ToolbarItem(placement: .navigation) {
-                HStack(spacing: 8) {
+                HStack(spacing: 10) {
                     Button {
                         sidebarExpanded.toggle()
                     } label: {
                         Image(systemName: "sidebar.leading")
+                            .font(.system(size: 15, weight: .medium))
+                            .frame(width: 22, height: 18)
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                    .buttonStyle(.borderless)
                     .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
 
                     Rectangle()
-                        .fill(Color.secondary.opacity(0.35))
-                        .frame(width: 1, height: 14)
+                        .fill(Color.primary.opacity(0.18))
+                        .frame(width: 1, height: 18)
 
-                    PinDockAppIcon(size: 20)
+                    PinDockAppIcon(size: 26)
                     Text("PinDock")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                 }
+                .padding(.vertical, 4)
             }
             ToolbarItem(placement: .automatic) {
                 PinDockStatusChip(state: state)
             }
         }
+        .toolbarBackground(.visible, for: .windowToolbar)
+        .toolbarBackground(.regularMaterial, for: .windowToolbar)
         .background(
             GeometryReader { geo in
                 Color.clear
