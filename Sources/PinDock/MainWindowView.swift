@@ -53,34 +53,34 @@ struct MainWindowView: View {
             sidebar
                 .frame(width: sidebarWidth)
                 .frame(maxHeight: .infinity)
-            Divider()
+            Divider().opacity(0.35)
             VStack(spacing: 0) {
                 chromeBar
-                Divider()
+                Divider().opacity(0.35)
                 detail
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background { windowGlass }
         .frame(minWidth: 780, minHeight: 520)
         .frame(idealWidth: 920, idealHeight: 640)
         .id(state.appLanguage)
         .animation(.easeInOut(duration: 0.18), value: sidebarExpanded)
     }
 
-    /// Collapse control (left) · circular icon · PinDock · current page · on/off at trailing edge.
-    private var chromeBar: some View {
-        HStack(spacing: 10) {
-            Button {
-                sidebarExpanded.toggle()
-            } label: {
-                Image(systemName: "sidebar.leading")
-                    .font(.system(size: 14, weight: .medium))
-                    .frame(width: 22, height: 22)
-            }
-            .buttonStyle(.plain)
-            .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
+    /// Same Control-Center glass as the menu-bar panel.
+    private var windowGlass: some View {
+        ZStack {
+            Rectangle().fill(.ultraThinMaterial)
+            Rectangle()
+                .fill(Color.white.opacity(0.06))
+                .blendMode(.plusLighter)
+        }
+    }
 
+    /// Logo + name sit flush against the sidebar; on/off stays on the trailing edge.
+    private var chromeBar: some View {
+        HStack(spacing: 8) {
             appIcon
                 .frame(width: 22, height: 22)
                 .clipShape(Circle())
@@ -105,30 +105,51 @@ struct MainWindowView: View {
             .controlSize(.small)
             .help(state.statusLine)
         }
-        .padding(.leading, 78) // room for traffic lights in the unified title bar
+        .padding(.leading, 10)
         .padding(.trailing, 12)
         .padding(.vertical, 8)
-        .background(.bar)
+        .background(.ultraThinMaterial)
     }
 
     private var sidebar: some View {
-        List(selection: $pane) {
-            ForEach(WindowPane.allCases) { item in
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
                 if sidebarExpanded {
-                    Label(item.title, systemImage: item.symbol)
-                        .tag(item)
-                        .help(item.title)
-                } else {
-                    Image(systemName: item.symbol)
-                        .font(.system(size: 14, weight: .medium))
-                        .frame(maxWidth: .infinity)
-                        .tag(item)
-                        .help(item.title)
+                    Spacer().frame(width: 68) // traffic lights
+                }
+                Button {
+                    sidebarExpanded.toggle()
+                } label: {
+                    Image(systemName: "sidebar.leading")
+                        .font(.system(size: 13, weight: .medium))
+                        .frame(width: 28, height: 22)
+                }
+                .buttonStyle(.plain)
+                .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
+                Spacer(minLength: 0)
+            }
+            .padding(.top, sidebarExpanded ? 6 : 34)
+            .padding(.bottom, 4)
+            .padding(.horizontal, sidebarExpanded ? 6 : 0)
+
+            List(selection: $pane) {
+                ForEach(WindowPane.allCases) { item in
+                    if sidebarExpanded {
+                        Label(item.title, systemImage: item.symbol)
+                            .tag(item)
+                            .help(item.title)
+                    } else {
+                        Image(systemName: item.symbol)
+                            .font(.system(size: 14, weight: .medium))
+                            .frame(maxWidth: .infinity)
+                            .tag(item)
+                            .help(item.title)
+                    }
                 }
             }
+            .listStyle(.sidebar)
+            .scrollContentBackground(.hidden)
         }
-        .listStyle(.sidebar)
-        .scrollContentBackground(.hidden)
         .background(.ultraThinMaterial)
     }
 
@@ -180,7 +201,7 @@ struct MainWindowView: View {
             .frame(maxWidth: 760, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(.ultraThinMaterial)
     }
 
     // MARK: - General / enable

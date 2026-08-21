@@ -153,6 +153,8 @@ enum L10n {
         "upToDate": "Up to date",
         "sidebar.hide": "Hide sidebar",
         "sidebar.show": "Show sidebar",
+        "tab.dock": "Dock",
+        "tab.settings": "Settings",
     ]
 
     private static let de: [String: String] = [
@@ -243,6 +245,8 @@ enum L10n {
         "updates.footer": "Automatische Suche ist standardmäßig aus. Auto-Install nur nach Prüfung.",
         "sidebar.hide": "Seitenleiste ausblenden",
         "sidebar.show": "Seitenleiste einblenden",
+        "tab.dock": "Dock",
+        "tab.settings": "Einstellungen",
     ]
 
     private static let fr: [String: String] = [
@@ -331,6 +335,8 @@ enum L10n {
         "none": "Aucune",
         "general.subtitle": "Activez ou désactivez PinDock. Désactivé = le Dock se comporte comme d’habitude.",
         "updates.footer": "La recherche auto est désactivée par défaut. L’install auto uniquement après vérification.",
+        "tab.dock": "Dock",
+        "tab.settings": "Réglages",
     ]
 
     private static let it: [String: String] = [
@@ -419,6 +425,8 @@ enum L10n {
         "none": "Nessuno",
         "general.subtitle": "Attiva o disattiva PinDock. Disattivo = il Dock si comporta come al solito.",
         "updates.footer": "La ricerca auto è disattivata di default. Installazione auto solo dopo verifica.",
+        "tab.dock": "Dock",
+        "tab.settings": "Impostazioni",
     ]
 
     private static let es: [String: String] = [
@@ -507,6 +515,8 @@ enum L10n {
         "none": "Ninguna",
         "general.subtitle": "Activa o desactiva PinDock. Desactivado = el Dock se mueve como de costumbre.",
         "updates.footer": "La búsqueda automática está desactivada por defecto. Autoinstalar solo tras verificar.",
+        "tab.dock": "Dock",
+        "tab.settings": "Ajustes",
     ]
 
     private static let pt: [String: String] = [

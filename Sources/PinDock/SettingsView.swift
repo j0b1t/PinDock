@@ -9,6 +9,13 @@ struct SettingsView: View {
     /// Compact = menu-bar popover; false = larger standalone window.
     var compact: Bool = true
 
+    private enum CompactTab: Hashable {
+        case dock
+        case settings
+    }
+
+    @State private var compactTab: CompactTab = .dock
+
     private var panelWidth: CGFloat { compact ? 360 : 420 }
     /// Tall enough that Displays → Allowed → Behavior fit without scrolling
     /// when no banners are showing (Permissions / Updates may still scroll).
@@ -34,27 +41,36 @@ struct SettingsView: View {
     private var compactBody: some View {
         VStack(spacing: 0) {
             header
+            Picker("", selection: $compactTab) {
+                Text(L10n.t("tab.dock")).tag(CompactTab.dock)
+                Text(L10n.t("tab.settings")).tag(CompactTab.settings)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 14) {
-                    if state.updateAvailable { updateBanner }
-                    if state.dockIsAway { moveBackBanner }
-                    if showsAccessibilityBanner {
-                        accessibilityBanner
+                    if compactTab == .dock {
+                        if state.updateAvailable { updateBanner }
+                        if state.dockIsAway { moveBackBanner }
+                        if showsAccessibilityBanner { accessibilityBanner }
+                        pinDockEnableSection
+                        defaultSection
+                        allowListSection
+                    } else {
+                        appearanceSection
+                        behaviorSection
+                        permissionsSection
+                        updatesSection
+                        footer
                     }
-                    pinDockEnableSection
-                    defaultSection
-                    allowListSection
-                    appearanceSection
-                    behaviorSection
-                    permissionsSection
-                    updatesSection
-                    footer
                 }
-                .padding(14)
+                .padding(.horizontal, 14)
+                .padding(.bottom, 14)
             }
         }
         .frame(width: panelWidth)
-        .frame(maxHeight: panelMaxHeight)
+        .frame(maxHeight: compactTab == .dock ? 560 : panelMaxHeight)
         .background { glassBackground }
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
