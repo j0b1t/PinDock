@@ -11,17 +11,17 @@ enum AppPresentation: String, CaseIterable, Hashable, Identifiable {
 
     var shortLabel: String {
         switch self {
-        case .menuBar: return "Menu bar"
-        case .window: return "Window"
-        case .both: return "Both"
+        case .menuBar: return "Menu bar only"
+        case .window: return "App only"
+        case .both: return "Menu bar and App"
         }
     }
 
     var subtitle: String {
         switch self {
         case .menuBar: return "Pin in the menu bar only (default)"
-        case .window: return "Dock icon and a larger app window"
-        case .both: return "Menu bar pin and a standalone window"
+        case .window: return "Dock icon and a standalone app"
+        case .both: return "Menu bar pin and a standalone app"
         }
     }
 
