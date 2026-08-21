@@ -572,7 +572,7 @@ struct SettingsView: View {
 
     private var chipFill: some View {
         RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(.thinMaterial)
+            .fill(.ultraThinMaterial)
     }
 }
 

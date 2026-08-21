@@ -235,7 +235,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         NSApp.activate(ignoringOtherApps: true)
         popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
 
-        // Keep popover key for Escape / text focus
+        if let view = popover?.contentViewController?.view {
+            view.wantsLayer = true
+            view.layer?.backgroundColor = NSColor.clear.cgColor
+            view.window?.isOpaque = false
+            view.window?.backgroundColor = .clear
+        }
         popover?.contentViewController?.view.window?.makeKey()
     }
 

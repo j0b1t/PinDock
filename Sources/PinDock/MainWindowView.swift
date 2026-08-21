@@ -270,7 +270,7 @@ struct MainWindowView: View {
                 }
                 .frame(height: 180)
                 .padding(12)
-                .background(.thinMaterial)
+                .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
@@ -296,7 +296,7 @@ struct MainWindowView: View {
                         }
                     }
                 }
-                .background(.thinMaterial)
+                .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
         }
