@@ -44,65 +44,74 @@ struct MainWindowView: View {
         }
     }
 
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var sidebarExpanded = true
+
+    private var sidebarWidth: CGFloat { sidebarExpanded ? 200 : 56 }
 
     var body: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
-            List(selection: $pane) {
-                ForEach(WindowPane.allCases) { item in
-                    Label {
-                        Text(item.title)
-                    } icon: {
-                        if item == .general {
-                            PinDockMark(size: 16)
-                        } else {
-                            Image(systemName: item.symbol)
-                        }
-                    }
-                    .tag(item)
-                    .help(item.title)
-                }
-            }
-            .listStyle(.sidebar)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
-        } detail: {
-            detail
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .background { windowGlass }
-        }
-        .navigationSplitViewStyle(.automatic)
-        .navigationTitle("")
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
-                HStack(spacing: 10) {
-                    PinDockMark(size: 22)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("PinDock")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text(pane == .general ? state.statusLine : pane.title)
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                    PinDockStatusChip(state: state)
-                }
+        VStack(spacing: 0) {
+            titleBar
+            Divider().opacity(0.2)
+            HStack(spacing: 0) {
+                sidebar
+                    .frame(width: sidebarWidth)
+                Divider().opacity(0.2)
+                detail
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
-        .toolbarBackground(.ultraThinMaterial, for: .windowToolbar)
-        .background { windowGlass }
-        .frame(minWidth: 780, minHeight: 520)
-        .frame(idealWidth: 920, idealHeight: 640)
+        .background { GlassBackdrop(material: .underWindowBackground) }
+        .frame(minWidth: 640, minHeight: 440)
         .id(state.appLanguage)
+        .animation(.easeInOut(duration: 0.15), value: sidebarExpanded)
     }
 
-    /// Same Control-Center glass as the menu-bar panel.
-    private var windowGlass: some View {
-        ZStack {
-            Rectangle().fill(.ultraThinMaterial)
-            Rectangle()
-                .fill(Color.white.opacity(0.08))
-                .blendMode(.plusLighter)
+    /// Full-width so the app icon + name never jump when the sidebar collapses.
+    private var titleBar: some View {
+        HStack(spacing: 8) {
+            Color.clear.frame(width: 68, height: 12)
+
+            Button {
+                sidebarExpanded.toggle()
+            } label: {
+                Image(systemName: "sidebar.leading")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
+
+            PinDockAppIcon(size: 24)
+
+            Text("PinDock")
+                .font(.system(size: 13, weight: .semibold))
+
+            Spacer(minLength: 8)
         }
+        .padding(.trailing, 12)
+        .padding(.vertical, 6)
+    }
+
+    private var sidebar: some View {
+        List(selection: $pane) {
+            ForEach(WindowPane.allCases) { item in
+                Group {
+                    if sidebarExpanded {
+                        Label(item.title, systemImage: item.symbol)
+                    } else {
+                        Image(systemName: item.symbol)
+                            .font(.system(size: 14, weight: .medium))
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                .tag(item)
+                .help(item.title)
+            }
+        }
+        .listStyle(.sidebar)
+        .scrollContentBackground(.hidden)
+        .listRowSeparator(.hidden)
+        .background { GlassBackdrop(material: .sidebar) }
     }
 
     @ViewBuilder
@@ -135,7 +144,7 @@ struct MainWindowView: View {
             .frame(maxWidth: 760, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(.ultraThinMaterial)
+        .background(.clear)
     }
 
     // MARK: - General / enable

@@ -103,10 +103,14 @@ struct SettingsView: View {
     private var header: some View {
         HStack(spacing: 10) {
             PinDockMark(size: 26)
-            Text(state.statusLine)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("PinDock")
+                    .font(.system(size: 14, weight: .semibold))
+                Text(state.statusLine)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 14)
@@ -329,9 +333,10 @@ struct SettingsView: View {
                             Text(mode.localizedLabel).tag(mode)
                         }
                     }
+                    .pickerStyle(.menu)
                     .labelsHidden()
                     .controlSize(.small)
-                    .frame(width: 118)
+                    .frame(width: 128, alignment: .trailing)
                 }
                 Divider().padding(.leading, 12)
                 settingsRow(L10n.t("language"), L10n.t("language.hint")) {
@@ -340,9 +345,10 @@ struct SettingsView: View {
                             Text(lang.displayName).tag(lang)
                         }
                     }
+                    .pickerStyle(.menu)
                     .labelsHidden()
                     .controlSize(.small)
-                    .frame(width: 118)
+                    .frame(width: 128, alignment: .trailing)
                 }
             }
             .background(chipFill)
@@ -368,9 +374,10 @@ struct SettingsView: View {
                             Text(key.localizedLabel).tag(key)
                         }
                     }
+                    .pickerStyle(.menu)
                     .labelsHidden()
                     .controlSize(.small)
-                    .frame(width: 100)
+                    .frame(width: 128, alignment: .trailing)
                 }
                 Divider().padding(.leading, 12)
                 settingsRow(L10n.t("restoreWake"), L10n.t("restoreWake.hint")) {
@@ -568,10 +575,8 @@ struct SettingsView: View {
                 Text(text)
             }
         }
-        .font(.system(size: 11, weight: .semibold))
+        .font(.system(size: 12, weight: .semibold))
         .foregroundStyle(.secondary)
-        .textCase(.uppercase)
-        .tracking(0.3)
     }
 
     private var chipFill: some View {

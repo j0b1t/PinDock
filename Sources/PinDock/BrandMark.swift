@@ -53,3 +53,36 @@ struct PinDockStatusChip: View {
         .help(state.statusLine)
     }
 }
+
+/// Full-color app icon for the window title bar.
+struct PinDockAppIcon: View {
+    var size: CGFloat = 24
+
+    var body: some View {
+        Image(nsImage: NSApp.applicationIconImage ?? NSImage(size: NSSize(width: size, height: size)))
+            .resizable()
+            .interpolation(.high)
+            .aspectRatio(contentMode: .fit)
+            .frame(width: size, height: size)
+            .clipShape(RoundedRectangle(cornerRadius: size * 0.22, style: .continuous))
+            .accessibilityLabel("PinDock")
+    }
+}
+
+/// Desktop shows through — Apple-style translucent gray, not a flat fill.
+struct GlassBackdrop: NSViewRepresentable {
+    var material: NSVisualEffectView.Material = .underWindowBackground
+
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = material
+        view.blendingMode = .behindWindow
+        view.state = .followsWindowActiveState
+        view.isEmphasized = true
+        return view
+    }
+
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {
+        view.material = material
+    }
+}
