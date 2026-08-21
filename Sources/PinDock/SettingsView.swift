@@ -103,15 +103,10 @@ struct SettingsView: View {
     private var header: some View {
         HStack(spacing: 10) {
             PinDockMark(size: 26)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("PinDock")
-                    .font(.system(size: 14, weight: .semibold))
-                Text(state.statusLine)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-            Spacer(minLength: 0)
+            Text("PinDock")
+                .font(.system(size: 14, weight: .semibold))
+            Spacer(minLength: 8)
+            PinDockStatusChip(state: state)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -255,7 +250,12 @@ struct SettingsView: View {
 
     private var pinDockEnableSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel(L10n.t("pane.general"), systemImage: "pin.fill")
+            HStack(spacing: 6) {
+                PinDockMark(size: 14)
+                Text("PinDock")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
             settingsRow(L10n.t("enable"), L10n.t("enable.hint")) {
                 Toggle("", isOn: $state.isEnabled)
                     .toggleStyle(.switch)

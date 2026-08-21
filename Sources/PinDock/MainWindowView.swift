@@ -51,22 +51,35 @@ struct MainWindowView: View {
     var body: some View {
         VStack(spacing: 0) {
             titleBar
-            Divider().opacity(0.2)
-            HStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 10) {
                 sidebar
                     .frame(width: sidebarWidth)
-                Divider().opacity(0.2)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 detail
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
+            .padding(.horizontal, 10)
+            .padding(.bottom, 10)
+            .padding(.top, 4)
         }
-        .background { GlassBackdrop(material: .underWindowBackground) }
+        .background { windowGlass }
         .frame(minWidth: 640, minHeight: 440)
         .id(state.appLanguage)
         .animation(.easeInOut(duration: 0.15), value: sidebarExpanded)
     }
 
-    /// Full-width so the app icon + name never jump when the sidebar collapses.
+    /// Same glass as the menu-bar panel.
+    private var windowGlass: some View {
+        ZStack {
+            Rectangle().fill(.ultraThinMaterial)
+            Rectangle()
+                .fill(Color.white.opacity(0.28))
+                .blendMode(.plusLighter)
+        }
+    }
+
+    /// Traffic lights · collapse · | · app icon · PinDock ………… On/Off
     private var titleBar: some View {
         HStack(spacing: 8) {
             Color.clear.frame(width: 68, height: 12)
@@ -81,14 +94,19 @@ struct MainWindowView: View {
             .controlSize(.small)
             .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
 
-            PinDockAppIcon(size: 24)
+            Rectangle()
+                .fill(Color.secondary.opacity(0.35))
+                .frame(width: 1, height: 14)
 
+            PinDockAppIcon(size: 24)
             Text("PinDock")
                 .font(.system(size: 13, weight: .semibold))
 
             Spacer(minLength: 8)
+
+            PinDockStatusChip(state: state)
         }
-        .padding(.trailing, 12)
+        .padding(.trailing, 14)
         .padding(.vertical, 6)
     }
 
@@ -97,11 +115,25 @@ struct MainWindowView: View {
             ForEach(WindowPane.allCases) { item in
                 Group {
                     if sidebarExpanded {
-                        Label(item.title, systemImage: item.symbol)
+                        Label {
+                            Text(item.title)
+                        } icon: {
+                            if item == .general {
+                                PinDockMark(size: 15)
+                            } else {
+                                Image(systemName: item.symbol)
+                            }
+                        }
                     } else {
-                        Image(systemName: item.symbol)
-                            .font(.system(size: 14, weight: .medium))
-                            .frame(maxWidth: .infinity)
+                        Group {
+                            if item == .general {
+                                PinDockMark(size: 16)
+                            } else {
+                                Image(systemName: item.symbol)
+                                    .font(.system(size: 14, weight: .medium))
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
                     }
                 }
                 .tag(item)
@@ -111,7 +143,7 @@ struct MainWindowView: View {
         .listStyle(.sidebar)
         .scrollContentBackground(.hidden)
         .listRowSeparator(.hidden)
-        .background { GlassBackdrop(material: .sidebar) }
+        .background(.ultraThinMaterial)
     }
 
     @ViewBuilder
@@ -144,7 +176,7 @@ struct MainWindowView: View {
             .frame(maxWidth: 760, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(.clear)
+        .background(.ultraThinMaterial)
     }
 
     // MARK: - General / enable
