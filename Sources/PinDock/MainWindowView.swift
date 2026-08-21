@@ -512,15 +512,8 @@ struct MainWindowView: View {
                 windowRow(L10n.t("lightning")) {
                     Link("j0b1t@strike.me", destination: URL(string: "https://strike.me/j0b1t")!)
                 }
-                windowRow(L10n.t("kofi"), L10n.t("support.hint")) {
+                windowRow(L10n.t("kofi"), L10n.t("support.hint"), showDivider: false) {
                     Link("ko-fi.com/j0b1t", destination: URL(string: "https://ko-fi.com/j0b1t")!)
-                }
-                windowRow(L10n.t("license")) {
-                    Text("MIT")
-                        .foregroundStyle(.secondary)
-                }
-                windowRow(L10n.t("source"), showDivider: false) {
-                    Link("github.com/j0b1t/PinDock", destination: URL(string: "https://github.com/j0b1t/PinDock")!)
                 }
             }
         }
