@@ -22,6 +22,7 @@ struct SettingsView: View {
                 MainWindowView(state: state)
             }
         }
+        .id(state.appLanguage)
         .onAppear {
             state.refresh()
             if state.autoCheckForUpdates {
@@ -40,6 +41,7 @@ struct SettingsView: View {
                     if showsAccessibilityBanner {
                         accessibilityBanner
                     }
+                    pinDockEnableSection
                     defaultSection
                     allowListSection
                     appearanceSection
@@ -129,11 +131,14 @@ struct SettingsView: View {
                     .lineLimit(2)
             }
             Spacer(minLength: 6)
-            Toggle("", isOn: $state.isEnabled)
-                .toggleStyle(.switch)
-                .labelsHidden()
-                .controlSize(.small)
-                .help(state.isEnabled ? "Pinning on" : "Pinning off")
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(state.isEnabled && state.isRunning ? Color.green : Color.secondary.opacity(0.4))
+                    .frame(width: 7, height: 7)
+                Text(state.isEnabled ? L10n.t("on") : L10n.t("off"))
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -149,9 +154,9 @@ struct SettingsView: View {
                     .font(.system(size: 16))
                     .foregroundStyle(Color.accentColor)
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Update available")
+                    Text(L10n.t("update.banner"))
                         .font(.system(size: 12, weight: .semibold))
-                    Text("Version \(state.latestRemoteVersion ?? "") on GitHub")
+                    Text(L10n.t("update.banner.body", state.latestRemoteVersion ?? ""))
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                 }
@@ -165,12 +170,12 @@ struct SettingsView: View {
                 } else {
                     HStack(spacing: 6) {
                         if state.updateDownloadURL != nil {
-                            Button("Install") { state.installAvailableUpdate() }
+                            Button(L10n.t("install")) { state.installAvailableUpdate() }
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.regular)
                                 .font(.system(size: 12, weight: .medium))
                         }
-                        Button("View") { state.openReleasePage() }
+                        Button(L10n.t("view")) { state.openReleasePage() }
                             .controlSize(.regular)
                             .font(.system(size: 12, weight: .medium))
                     }
@@ -193,7 +198,7 @@ struct SettingsView: View {
                 .font(.system(size: 20))
                 .foregroundStyle(Color.accentColor)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Dock away from default")
+                Text(L10n.t("dockAway"))
                     .font(.system(size: 12, weight: .semibold))
                 Text("\(DisplayManager.shared.name(for: state.actualDockDisplayID != 0 ? state.actualDockDisplayID : state.currentDockDisplayID)) → \(DisplayManager.shared.name(for: state.defaultDisplayID))")
                     .font(.system(size: 10))
@@ -201,7 +206,7 @@ struct SettingsView: View {
                     .lineLimit(2)
             }
             Spacer(minLength: 6)
-            Button("Move Back") { state.moveBackToDefault() }
+            Button(L10n.t("moveBack")) { state.moveBackToDefault() }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
                 .frame(minHeight: 32)
@@ -219,20 +224,20 @@ struct SettingsView: View {
                 .font(.system(size: 18))
                 .foregroundStyle(.orange)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Accessibility needed")
+                Text(L10n.t("accessibility.needed"))
                     .font(.system(size: 12, weight: .semibold))
-                Text("PinDock needs Accessibility to lock the Dock. Grant access, then Retry.")
+                Text(L10n.t("accessibility.body"))
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 4)
             VStack(spacing: 6) {
-                Button("Grant…") { state.openAccessibility() }
+                Button(L10n.t("grant")) { state.openAccessibility() }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.regular)
                     .font(.system(size: 12, weight: .medium))
-                Button("Retry") { state.retryEngine() }
+                Button(L10n.t("retry")) { state.retryEngine() }
                     .controlSize(.regular)
                     .font(.system(size: 12, weight: .medium))
             }
@@ -273,12 +278,28 @@ struct SettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
+    // MARK: - Enable PinDock
+
+    private var pinDockEnableSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            sectionLabel(L10n.t("pane.general"), systemImage: "pin.fill")
+            settingsRow(L10n.t("enable"), L10n.t("enable.hint")) {
+                Toggle("", isOn: $state.isEnabled)
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .controlSize(.small)
+            }
+            .background(chipFill)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+    }
+
     // MARK: - Arrangement
 
     private var defaultSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Displays")
-            Text("Tap a display to move the Dock. Default is unchanged.")
+            sectionLabel(L10n.t("pane.displays"), systemImage: "display.2")
+            Text(L10n.t("tapDisplay"))
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)
 
@@ -302,7 +323,7 @@ struct SettingsView: View {
 
     private var allowListSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Allowed for Dock")
+            sectionLabel(L10n.t("allowed"), systemImage: "checkmark.circle")
             VStack(spacing: 0) {
                 ForEach(Array(state.displays.enumerated()), id: \.element.id) { index, display in
                     DisplayAllowRow(
@@ -331,12 +352,23 @@ struct SettingsView: View {
 
     private var appearanceSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Appearance")
+            sectionLabel(L10n.t("pane.appearance"), systemImage: "macwindow")
             VStack(spacing: 0) {
-                settingsRow("Show PinDock", state.appPresentation.subtitle) {
+                settingsRow(L10n.t("showPinDock"), state.appPresentation.localizedSubtitle) {
                     Picker("", selection: $state.appPresentation) {
                         ForEach(AppPresentation.allCases) { mode in
-                            Text(mode.shortLabel).tag(mode)
+                            Text(mode.localizedLabel).tag(mode)
+                        }
+                    }
+                    .labelsHidden()
+                    .controlSize(.small)
+                    .frame(width: 118)
+                }
+                Divider().padding(.leading, 12)
+                settingsRow(L10n.t("language"), L10n.t("language.hint")) {
+                    Picker("", selection: $state.appLanguage) {
+                        ForEach(AppLanguage.allCases) { lang in
+                            Text(lang.displayName).tag(lang)
                         }
                     }
                     .labelsHidden()
@@ -353,18 +385,18 @@ struct SettingsView: View {
 
     private var behaviorSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Behavior")
+            sectionLabel(L10n.t("pane.behavior"), systemImage: "slider.horizontal.3")
             VStack(spacing: 0) {
-                settingsRow("Move Back", "⌘⇧D") {
+                settingsRow(L10n.t("moveBack"), "⌘⇧D") {
                     Text("⌘⇧D")
                         .font(.system(size: 11, weight: .medium, design: .rounded))
                         .foregroundStyle(.secondary)
                 }
                 Divider().padding(.leading, 12)
-                settingsRow("Modifier", "Hold at bottom edge") {
+                settingsRow(L10n.t("modifier"), L10n.t("modifier.hint")) {
                     Picker("", selection: $state.modifierKey) {
                         ForEach(ModifierKey.allCases) { key in
-                            Text(key.shortLabel).tag(key)
+                            Text(key.localizedLabel).tag(key)
                         }
                     }
                     .labelsHidden()
@@ -372,14 +404,14 @@ struct SettingsView: View {
                     .frame(width: 100)
                 }
                 Divider().padding(.leading, 12)
-                settingsRow("Restore on wake", "And when monitors change") {
+                settingsRow(L10n.t("restoreWake"), L10n.t("restoreWake.hint")) {
                     Toggle("", isOn: $state.restoreOnWake)
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .controlSize(.small)
                 }
                 Divider().padding(.leading, 12)
-                settingsRow("Launch at login", "Start when you sign in") {
+                settingsRow(L10n.t("launchLogin"), L10n.t("launchLogin.hint")) {
                     Toggle("", isOn: $state.launchAtLogin)
                         .toggleStyle(.switch)
                         .labelsHidden()
@@ -395,24 +427,24 @@ struct SettingsView: View {
 
     private var permissionsSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Permissions")
+            sectionLabel(L10n.t("pane.permissions"), systemImage: "hand.raised.fill")
             VStack(spacing: 0) {
                 settingsRow(
-                    "Accessibility",
-                    state.isTrusted ? "Granted — required for locking" : "Required for locking"
+                    L10n.t("accessibility"),
+                    state.isTrusted ? L10n.t("accessibility.granted") : L10n.t("accessibility.required")
                 ) {
                     if state.isTrusted {
-                        Label("Active", systemImage: "checkmark.circle.fill")
+                        Label(L10n.t("active"), systemImage: "checkmark.circle.fill")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(.green)
                             .labelStyle(.titleAndIcon)
                     } else {
                         HStack(spacing: 6) {
-                            Button("Grant…") { state.openAccessibility() }
+                            Button(L10n.t("grant")) { state.openAccessibility() }
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.regular)
                                 .font(.system(size: 12, weight: .medium))
-                            Button("Retry") { state.retryEngine() }
+                            Button(L10n.t("retry")) { state.retryEngine() }
                                 .controlSize(.regular)
                                 .font(.system(size: 12, weight: .medium))
                         }
@@ -428,9 +460,9 @@ struct SettingsView: View {
 
     private var updatesSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Updates")
+            sectionLabel(L10n.t("pane.updates"), systemImage: "arrow.down.circle")
             VStack(spacing: 0) {
-                settingsRow("Auto check", "Off by default · launch & every 12h when on") {
+                settingsRow(L10n.t("autoCheck"), L10n.t("autoCheck.hint")) {
                     Toggle("", isOn: $state.autoCheckForUpdates)
                         .toggleStyle(.switch)
                         .labelsHidden()
@@ -438,10 +470,10 @@ struct SettingsView: View {
                 }
                 Divider().padding(.leading, 12)
                 settingsRow(
-                    "Auto install",
+                    L10n.t("autoInstall"),
                     state.autoCheckForUpdates
-                        ? "Verified GitHub ZIP only (SHA + codesign)"
-                        : "Enable auto check first"
+                        ? L10n.t("autoInstall.hint")
+                        : L10n.t("autoInstall.needCheck")
                 ) {
                     Toggle("", isOn: $state.autoInstallUpdates)
                         .toggleStyle(.switch)
@@ -450,23 +482,23 @@ struct SettingsView: View {
                         .disabled(!state.autoCheckForUpdates)
                 }
                 Divider().padding(.leading, 12)
-                settingsRow("Status", updateSubtitle) {
+                settingsRow(L10n.t("status"), updateSubtitle) {
                     if state.isCheckingUpdate || state.isInstallingUpdate {
                         ProgressView().controlSize(.regular)
                     } else if state.updateAvailable {
                         HStack(spacing: 6) {
                             if state.updateDownloadURL != nil {
-                                Button("Install") { state.installAvailableUpdate() }
+                                Button(L10n.t("install")) { state.installAvailableUpdate() }
                                     .buttonStyle(.borderedProminent)
                                     .controlSize(.regular)
                                     .font(.system(size: 12, weight: .medium))
                             }
-                            Button("View") { state.openReleasePage() }
+                            Button(L10n.t("view")) { state.openReleasePage() }
                                 .controlSize(.regular)
                                 .font(.system(size: 12, weight: .medium))
                         }
                     } else {
-                        Button("Check") { state.checkForUpdates(force: true) }
+                        Button(L10n.t("check")) { state.checkForUpdates(force: true) }
                             .controlSize(.regular)
                             .font(.system(size: 12, weight: .medium))
                     }
@@ -479,30 +511,30 @@ struct SettingsView: View {
 
     private var updateSubtitle: String {
         if state.isInstallingUpdate {
-            return "Installing…"
+            return L10n.t("installing")
         }
         if state.updateAvailable, let v = state.latestRemoteVersion {
-            return state.autoInstallUpdates ? "\(v) — auto install" : "\(v) available"
+            return state.autoInstallUpdates ? L10n.t("versionAuto", v) : L10n.t("versionAvailable", v)
         }
         if !state.updateCheckIdleMessage.isEmpty {
             return state.updateCheckIdleMessage
         }
-        return "GitHub Releases"
+        return L10n.t("githubReleases")
     }
 
     // MARK: - Footer
 
     private var footer: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Version \(state.appVersion)")
+            Text(L10n.t("version", state.appVersion))
                 .font(.system(size: 10))
                 .foregroundStyle(.tertiary)
 
             VStack(alignment: .leading, spacing: 5) {
-                Text("Support PinDock")
+                Text(L10n.t("support"))
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
-                Text("Optional tip — never required.")
+                Text(L10n.t("support.hint"))
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
                 HStack(spacing: 8) {
@@ -558,12 +590,19 @@ struct SettingsView: View {
         .padding(.vertical, 8)
     }
 
-    private func sectionLabel(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(.secondary)
-            .textCase(.uppercase)
-            .tracking(0.3)
+    private func sectionLabel(_ text: String, systemImage: String? = nil) -> some View {
+        Group {
+            if let systemImage {
+                Label(text, systemImage: systemImage)
+                    .labelStyle(.titleAndIcon)
+            } else {
+                Text(text)
+            }
+        }
+        .font(.system(size: 11, weight: .semibold))
+        .foregroundStyle(.secondary)
+        .textCase(.uppercase)
+        .tracking(0.3)
     }
 
     private var chipFill: some View {
@@ -598,18 +637,18 @@ struct DisplayAllowRow: View {
                     Text(display.name)
                         .font(.system(size: 12, weight: .medium))
                         .lineLimit(1)
-                    if isDefault { pill("Default", Color.accentColor) }
-                    if isActualDock { pill("Dock", Color.orange) }
-                    if !isAllowed { pill("Off", Color.secondary) }
+                    if isDefault { pill(L10n.t("default"), Color.accentColor) }
+                    if isActualDock { pill(L10n.t("dock"), Color.orange) }
+                    if !isAllowed { pill(L10n.t("off"), Color.secondary) }
                 }
-                Text(display.isMain ? "Main · \(sizeLabel)" : sizeLabel)
+                Text(display.isMain ? "\(L10n.t("main")) · \(sizeLabel)" : sizeLabel)
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 4)
 
-            Button(isDefault ? "Default" : "Set default") {
+            Button(isDefault ? L10n.t("default") : L10n.t("setDefault")) {
                 onSetDefault()
             }
             .buttonStyle(.bordered)
@@ -691,11 +730,11 @@ struct DisplayMapView: View {
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 4)
                                 if isCurrent {
-                                    Text("Dock")
+                                    Text(L10n.t("dock"))
                                         .font(.system(size: 8, weight: .semibold))
                                         .foregroundStyle(.white.opacity(0.9))
                                 } else if isDefault {
-                                    Text("Default")
+                                    Text(L10n.t("default"))
                                         .font(.system(size: 8, weight: .semibold))
                                         .foregroundStyle(Color.accentColor)
                                 }

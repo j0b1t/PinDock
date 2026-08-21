@@ -4,9 +4,10 @@ import AppKit
 /// Standalone app window — Settings.app style (sidebar + detail), not the menu-bar popover.
 struct MainWindowView: View {
     @ObservedObject var state: AppState
-    @State private var pane: WindowPane = .displays
+    @State private var pane: WindowPane = .general
 
     enum WindowPane: String, CaseIterable, Identifiable, Hashable {
+        case general
         case displays
         case behavior
         case appearance
@@ -16,19 +17,23 @@ struct MainWindowView: View {
 
         var id: String { rawValue }
 
-        var title: String {
+        var titleKey: String {
             switch self {
-            case .displays: return "Displays"
-            case .behavior: return "Behavior"
-            case .appearance: return "Appearance"
-            case .permissions: return "Permissions"
-            case .updates: return "Updates"
-            case .about: return "About"
+            case .general: return "pane.general"
+            case .displays: return "pane.displays"
+            case .behavior: return "pane.behavior"
+            case .appearance: return "pane.appearance"
+            case .permissions: return "pane.permissions"
+            case .updates: return "pane.updates"
+            case .about: return "pane.about"
             }
         }
 
+        var title: String { L10n.t(titleKey) }
+
         var symbol: String {
             switch self {
+            case .general: return "pin.fill"
             case .displays: return "display.2"
             case .behavior: return "slider.horizontal.3"
             case .appearance: return "macwindow"
@@ -42,43 +47,109 @@ struct MainWindowView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $pane) {
-                Section("PinDock") {
-                    ForEach(WindowPane.allCases) { item in
+                sidebarBrand
+                    .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 8, trailing: 4))
+                    .listRowSeparator(.hidden)
+
+                Section {
+                    enableRow
+                }
+
+                Section {
+                    ForEach(WindowPane.allCases.filter { $0 != .general }) { item in
                         Label(item.title, systemImage: item.symbol)
                             .tag(item)
                     }
                 }
             }
             .listStyle(.sidebar)
-            .navigationSplitViewColumnWidth(min: 168, ideal: 196, max: 240)
+            .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
         } detail: {
             detail
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        .navigationTitle(pane.title)
+        .navigationTitle("")
         .toolbar {
-            ToolbarItem(placement: .automatic) {
-                HStack(spacing: 8) {
-                    Text(state.statusLine)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .frame(maxWidth: 280, alignment: .trailing)
-                    Toggle(isOn: $state.isEnabled) {
-                        Text("Pinning")
+            ToolbarItem(placement: .navigation) {
+                HStack(spacing: 10) {
+                    appIcon
+                        .frame(width: 28, height: 28)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("PinDock")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(pane.title)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
                     }
-                    .toggleStyle(.switch)
-                    .controlSize(.small)
-                    .help(state.isEnabled ? "Pinning on" : "Pinning off")
                 }
             }
+            ToolbarItem(placement: .automatic) {
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(state.isEnabled && state.isRunning ? Color.green : Color.secondary.opacity(0.45))
+                        .frame(width: 8, height: 8)
+                    Text(state.isEnabled ? L10n.t("on") : L10n.t("off"))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+                .help(state.statusLine)
+            }
         }
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(.ultraThinMaterial)
+        .id(state.appLanguage)
+    }
+
+    private var sidebarBrand: some View {
+        HStack(spacing: 10) {
+            appIcon
+                .frame(width: 36, height: 36)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("PinDock")
+                    .font(.system(size: 15, weight: .semibold))
+                Text(L10n.t("version", state.appVersion))
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var enableRow: some View {
+        Toggle(isOn: $state.isEnabled) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(L10n.t("enable"))
+                Text(state.isEnabled ? L10n.t("on") : L10n.t("off"))
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .toggleStyle(.switch)
+        .controlSize(.small)
+    }
+
+    @ViewBuilder
+    private var appIcon: some View {
+        if let icon = NSApp.applicationIconImage {
+            Image(nsImage: icon)
+                .resizable()
+                .interpolation(.high)
+                .aspectRatio(contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+        } else if let image = NSImage(named: "HeaderLogo") {
+            Image(nsImage: image)
+                .resizable()
+                .renderingMode(.template)
+                .aspectRatio(contentMode: .fit)
+        } else {
+            Image(systemName: "pin.fill")
+        }
     }
 
     @ViewBuilder
     private var detail: some View {
         switch pane {
+        case .general: generalPage
         case .displays: displaysPage
         case .behavior: behaviorPage
         case .appearance: appearancePage
@@ -101,41 +172,61 @@ struct MainWindowView: View {
                 }
                 content()
             }
-            .padding(24)
-            .frame(maxWidth: 720, alignment: .leading)
+            .padding(28)
+            .frame(maxWidth: 760, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Color(nsColor: .windowBackgroundColor))
     }
 
+    // MARK: - General / enable
+
+    private var generalPage: some View {
+        page(title: L10n.t("pane.general"), subtitle: L10n.t("general.subtitle")) {
+            Form {
+                Section {
+                    Toggle(L10n.t("enable"), isOn: $state.isEnabled)
+                    LabeledContent(L10n.t("status")) {
+                        Text(state.statusLine)
+                            .foregroundStyle(.secondary)
+                    }
+                } footer: {
+                    Text(L10n.t("enable.hint"))
+                }
+            }
+            .formStyle(.grouped)
+            .frame(maxWidth: .infinity)
+        }
+    }
+
     // MARK: - Displays
 
     private var displaysPage: some View {
-        page(title: "Displays", subtitle: "Choose where the Dock may live. Click a display to move it; Set default never moves the Dock by itself.") {
+        page(title: L10n.t("pane.displays"), subtitle: L10n.t("displays.subtitle")) {
             if state.dockIsAway {
                 HStack(alignment: .center, spacing: 12) {
                     Image(systemName: "arrow.uturn.backward.circle.fill")
                         .font(.system(size: 22))
                         .foregroundStyle(Color.accentColor)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Dock is away from the default display")
+                        Text(L10n.t("dockAway.body"))
                             .font(.system(size: 13, weight: .semibold))
                         Text("\(DisplayManager.shared.name(for: state.actualDockDisplayID != 0 ? state.actualDockDisplayID : state.currentDockDisplayID)) → \(DisplayManager.shared.name(for: state.defaultDisplayID))")
                             .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Button("Move Back") { state.moveBackToDefault() }
+                    Button(L10n.t("moveBack")) { state.moveBackToDefault() }
                         .buttonStyle(.borderedProminent)
                         .keyboardShortcut("d", modifiers: [.command, .shift])
                 }
                 .padding(14)
-                .background(Color.accentColor.opacity(0.10))
+                .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("Arrangement")
+                Label(L10n.t("arrangement"), systemImage: "display.2")
                     .font(.system(size: 13, weight: .semibold))
                 DisplayMapView(
                     displays: state.displays,
@@ -146,14 +237,14 @@ struct MainWindowView: View {
                 ) { id in
                     state.moveDockToDisplay(id)
                 }
-                .frame(height: 160)
+                .frame(height: 180)
                 .padding(12)
-                .background(Color(nsColor: .controlBackgroundColor))
+                .background(.thinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("Allowed for Dock")
+                Label(L10n.t("allowed"), systemImage: "checkmark.circle")
                     .font(.system(size: 13, weight: .semibold))
                 VStack(spacing: 0) {
                     ForEach(Array(state.displays.enumerated()), id: \.element.id) { index, display in
@@ -174,7 +265,7 @@ struct MainWindowView: View {
                         }
                     }
                 }
-                .background(Color(nsColor: .controlBackgroundColor))
+                .background(.thinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
         }
@@ -183,23 +274,23 @@ struct MainWindowView: View {
     // MARK: - Behavior
 
     private var behaviorPage: some View {
-        page(title: "Behavior", subtitle: "How PinDock moves the Dock and what happens when you sign in or wake the Mac.") {
+        page(title: L10n.t("pane.behavior"), subtitle: L10n.t("behavior.subtitle")) {
             Form {
                 Section {
-                    LabeledContent("Move Back") {
+                    LabeledContent(L10n.t("moveBack")) {
                         Text("⌘⇧D")
                             .font(.system(size: 13, weight: .medium, design: .rounded))
                             .foregroundStyle(.secondary)
                     }
-                    Picker("Modifier at bottom edge", selection: $state.modifierKey) {
+                    Picker(L10n.t("modifier"), selection: $state.modifierKey) {
                         ForEach(ModifierKey.allCases) { key in
-                            Text(key.shortLabel).tag(key)
+                            Text(key.localizedLabel).tag(key)
                         }
                     }
-                    Toggle("Restore on wake", isOn: $state.restoreOnWake)
-                    Toggle("Launch at login", isOn: $state.launchAtLogin)
+                    Toggle(L10n.t("restoreWake"), isOn: $state.restoreOnWake)
+                    Toggle(L10n.t("launchLogin"), isOn: $state.launchAtLogin)
                 } footer: {
-                    Text("Hold the modifier at a display’s bottom edge to move the Dock on purpose. Restore on wake also runs when monitors are plugged in or unplugged.")
+                    Text(L10n.t("modifier.hint"))
                 }
             }
             .formStyle(.grouped)
@@ -210,17 +301,26 @@ struct MainWindowView: View {
     // MARK: - Appearance
 
     private var appearancePage: some View {
-        page(title: "Appearance", subtitle: "Choose menu bar, a standalone window, or both. The Dock lock works the same in every mode.") {
+        page(title: L10n.t("pane.appearance"), subtitle: L10n.t("appearance.subtitle")) {
             Form {
                 Section {
-                    Picker("Show PinDock", selection: $state.appPresentation) {
-                        ForEach(AppPresentation.allCases) { mode in
-                            Text(mode.shortLabel).tag(mode)
-                        }
+                    Picker(L10n.t("showPinDock"), selection: $state.appPresentation) {
+                        Text(L10n.t("present.menuBar")).tag(AppPresentation.menuBar)
+                        Text(L10n.t("present.window")).tag(AppPresentation.window)
+                        Text(L10n.t("present.both")).tag(AppPresentation.both)
                     }
                     .pickerStyle(.radioGroup)
                 } footer: {
-                    Text(state.appPresentation.subtitle)
+                    Text(state.appPresentation.localizedSubtitle)
+                }
+                Section {
+                    Picker(L10n.t("language"), selection: $state.appLanguage) {
+                        ForEach(AppLanguage.allCases) { lang in
+                            Text(lang.displayName).tag(lang)
+                        }
+                    }
+                } footer: {
+                    Text(L10n.t("language.hint"))
                 }
             }
             .formStyle(.grouped)
@@ -231,39 +331,39 @@ struct MainWindowView: View {
     // MARK: - Permissions
 
     private var permissionsPage: some View {
-        page(title: "Permissions", subtitle: "Accessibility is required to lock the Dock on the display you choose.") {
+        page(title: L10n.t("pane.permissions"), subtitle: L10n.t("permissions.subtitle")) {
             if !state.isTrusted || (state.isEnabled && !state.isRunning) {
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 20))
                         .foregroundStyle(.orange)
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Accessibility needed")
+                        Text(L10n.t("accessibility.needed"))
                             .font(.system(size: 14, weight: .semibold))
-                        Text("Enable PinDock in System Settings → Privacy & Security → Accessibility, then Retry.")
+                        Text(L10n.t("accessibility.body"))
                             .font(.system(size: 13))
                             .foregroundStyle(.secondary)
                         HStack(spacing: 8) {
-                            Button("Grant…") { state.openAccessibility() }
+                            Button(L10n.t("grant")) { state.openAccessibility() }
                                 .buttonStyle(.borderedProminent)
-                            Button("Retry") { state.retryEngine() }
+                            Button(L10n.t("retry")) { state.retryEngine() }
                         }
                     }
                     Spacer()
                 }
                 .padding(16)
-                .background(Color.orange.opacity(0.12))
+                .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
             Form {
                 Section {
-                    LabeledContent("Accessibility") {
+                    LabeledContent(L10n.t("accessibility")) {
                         if state.isTrusted {
-                            Label("Active", systemImage: "checkmark.circle.fill")
+                            Label(L10n.t("active"), systemImage: "checkmark.circle.fill")
                                 .foregroundStyle(.green)
                         } else {
-                            Text("Not granted")
+                            Text(L10n.t("notGranted"))
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -277,16 +377,16 @@ struct MainWindowView: View {
     // MARK: - Updates
 
     private var updatesPage: some View {
-        page(title: "Updates", subtitle: "Optional check against public GitHub Releases. Installs are verified (host, SHA-256, codesign).") {
+        page(title: L10n.t("pane.updates"), subtitle: L10n.t("updates.subtitle")) {
             if state.updateAvailable {
                 HStack(spacing: 12) {
                     Image(systemName: "arrow.down.circle.fill")
                         .font(.system(size: 22))
                         .foregroundStyle(Color.accentColor)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Version \(state.latestRemoteVersion ?? "") is available")
+                        Text(L10n.t("update.ready", state.latestRemoteVersion ?? ""))
                             .font(.system(size: 14, weight: .semibold))
-                        Text("Downloaded from GitHub Releases and verified before install.")
+                        Text(L10n.t("update.ready.body"))
                             .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                     }
@@ -297,24 +397,24 @@ struct MainWindowView: View {
                     } else {
                         HStack(spacing: 8) {
                             if state.updateDownloadURL != nil {
-                                Button("Install") { state.installAvailableUpdate() }
+                                Button(L10n.t("install")) { state.installAvailableUpdate() }
                                     .buttonStyle(.borderedProminent)
                             }
-                            Button("View") { state.openReleasePage() }
+                            Button(L10n.t("view")) { state.openReleasePage() }
                         }
                     }
                 }
                 .padding(16)
-                .background(Color.accentColor.opacity(0.10))
+                .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
             Form {
                 Section {
-                    Toggle("Auto check for updates", isOn: $state.autoCheckForUpdates)
-                    Toggle("Auto install updates", isOn: $state.autoInstallUpdates)
+                    Toggle(L10n.t("autoCheck"), isOn: $state.autoCheckForUpdates)
+                    Toggle(L10n.t("autoInstall"), isOn: $state.autoInstallUpdates)
                         .disabled(!state.autoCheckForUpdates)
-                    LabeledContent("Status") {
+                    LabeledContent(L10n.t("status")) {
                         if state.isCheckingUpdate || state.isInstallingUpdate {
                             ProgressView().controlSize(.small)
                         } else if state.updateAvailable {
@@ -324,12 +424,12 @@ struct MainWindowView: View {
                             HStack(spacing: 8) {
                                 Text(updateStatusLine)
                                     .foregroundStyle(.secondary)
-                                Button("Check") { state.checkForUpdates(force: true) }
+                                Button(L10n.t("check")) { state.checkForUpdates(force: true) }
                             }
                         }
                     }
                 } footer: {
-                    Text("Auto check is off by default. Auto install only runs after verification.")
+                    Text(L10n.t("updates.footer"))
                 }
             }
             .formStyle(.grouped)
@@ -344,34 +444,24 @@ struct MainWindowView: View {
     }
 
     private var updateStatusLine: String {
-        if state.isInstallingUpdate { return "Installing…" }
+        if state.isInstallingUpdate { return L10n.t("installing") }
         if state.updateAvailable, let v = state.latestRemoteVersion {
-            return state.autoInstallUpdates ? "\(v) — auto install" : "\(v) available"
+            return state.autoInstallUpdates ? L10n.t("versionAuto", v) : L10n.t("versionAvailable", v)
         }
         if !state.updateCheckIdleMessage.isEmpty { return state.updateCheckIdleMessage }
-        return "GitHub Releases"
+        return L10n.t("githubReleases")
     }
 
     // MARK: - About
 
     private var aboutPage: some View {
-        page(title: "About", subtitle: "Pin the macOS Dock to the display you choose. Free, offline, open source.") {
+        page(title: L10n.t("pane.about"), subtitle: L10n.t("about.subtitle")) {
             HStack(alignment: .center, spacing: 16) {
-                if let image = NSImage(named: "HeaderLogo") {
-                    Image(nsImage: image)
-                        .resizable()
-                        .renderingMode(.template)
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 48, height: 48)
-                        .foregroundStyle(.primary)
-                } else {
-                    Image(systemName: "pin.fill")
-                        .font(.system(size: 36))
-                }
+                appIcon.frame(width: 64, height: 64)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("PinDock")
                         .font(.system(size: 20, weight: .semibold))
-                    Text("Version \(state.appVersion)")
+                    Text(L10n.t("version", state.appVersion))
                         .font(.system(size: 13))
                         .foregroundStyle(.secondary)
                 }
@@ -381,28 +471,55 @@ struct MainWindowView: View {
 
             Form {
                 Section {
-                    LabeledContent("Lightning") {
+                    LabeledContent(L10n.t("lightning")) {
                         Link("j0b1t@strike.me", destination: URL(string: "https://strike.me/j0b1t")!)
                     }
-                    LabeledContent("Ko‑fi") {
+                    LabeledContent(L10n.t("kofi")) {
                         Link("ko-fi.com/j0b1t", destination: URL(string: "https://ko-fi.com/j0b1t")!)
                     }
                 } header: {
-                    Text("Support")
+                    Text(L10n.t("support"))
                 } footer: {
-                    Text("Optional tips never unlock features.")
+                    Text(L10n.t("support.hint"))
                 }
                 Section {
-                    LabeledContent("License") { Text("MIT") }
-                    LabeledContent("Source") {
+                    LabeledContent(L10n.t("license")) { Text("MIT") }
+                    LabeledContent(L10n.t("source")) {
                         Link("github.com/j0b1t/PinDock", destination: URL(string: "https://github.com/j0b1t/PinDock")!)
                     }
                 } header: {
-                    Text("License")
+                    Text(L10n.t("license"))
                 }
             }
             .formStyle(.grouped)
             .frame(maxWidth: .infinity)
+        }
+    }
+}
+
+extension AppPresentation {
+    var localizedLabel: String {
+        switch self {
+        case .menuBar: return L10n.t("present.menuBar")
+        case .window: return L10n.t("present.window")
+        case .both: return L10n.t("present.both")
+        }
+    }
+
+    var localizedSubtitle: String {
+        switch self {
+        case .menuBar: return L10n.t("present.menuBar.hint")
+        case .window: return L10n.t("present.window.hint")
+        case .both: return L10n.t("present.both.hint")
+        }
+    }
+}
+
+extension ModifierKey {
+    var localizedLabel: String {
+        switch self {
+        case .none: return L10n.t("none")
+        default: return shortLabel
         }
     }
 }

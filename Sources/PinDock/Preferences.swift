@@ -91,6 +91,7 @@ final class Preferences {
         static let autoCheckForUpdates = "autoCheckForUpdates"
         static let autoInstallUpdates = "autoInstallUpdates"
         static let appPresentation = "appPresentation"
+        static let appLanguage = "appLanguage"
         // Legacy key migration
         static let legacyAnchor = "anchorDisplayID"
     }
@@ -218,6 +219,15 @@ final class Preferences {
             return AppPresentation(rawValue: raw) ?? .menuBar
         }
         set { defaults.set(newValue.rawValue, forKey: Keys.appPresentation) }
+    }
+
+    /// UI language. Default: follow macOS.
+    var appLanguage: AppLanguage {
+        get {
+            let raw = defaults.string(forKey: Keys.appLanguage) ?? AppLanguage.system.rawValue
+            return AppLanguage(rawValue: raw) ?? .system
+        }
+        set { defaults.set(newValue.rawValue, forKey: Keys.appLanguage) }
     }
 
     var triggerZonePixels: CGFloat {

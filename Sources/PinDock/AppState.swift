@@ -54,6 +54,13 @@ final class AppState: ObservableObject {
         }
     }
 
+    @Published var appLanguage: AppLanguage {
+        didSet {
+            Preferences.shared.appLanguage = appLanguage
+            refreshStatus()
+        }
+    }
+
     @Published var blockedDisplayIDs: Set<UInt32> {
         didSet { Preferences.shared.blockedDisplayIDs = blockedDisplayIDs }
     }
@@ -117,6 +124,7 @@ final class AppState: ObservableObject {
         restoreOnWake = prefs.restoreOnWake
         launchAtLogin = LaunchAtLogin.isEnabled
         appPresentation = prefs.appPresentation
+        appLanguage = prefs.appLanguage
         blockedDisplayIDs = prefs.blockedDisplayIDs
         autoCheckForUpdates = prefs.autoCheckForUpdates
         autoInstallUpdates = prefs.autoInstallUpdates
@@ -271,17 +279,17 @@ final class AppState: ObservableObject {
         let hostName = DisplayManager.shared.name(for: host)
 
         if !isTrusted {
-            statusLine = "Accessibility required — /Applications/PinDock.app"
+            statusLine = L10n.t("status.accessibility")
         } else if !isEnabled {
-            statusLine = "Pinning off"
+            statusLine = L10n.t("status.off")
         } else if isRunning {
             if dockIsAway {
-                statusLine = "Dock on \(hostName) · default \(defName) · ⌘⇧D Move Back"
+                statusLine = L10n.t("status.away", hostName, defName)
             } else {
-                statusLine = "Default · \(defName)"
+                statusLine = L10n.t("status.default", defName)
             }
         } else {
-            statusLine = "Protection not running"
+            statusLine = L10n.t("status.notRunning")
         }
     }
 
@@ -451,7 +459,7 @@ final class AppState: ObservableObject {
                 )
                 self.installIfAutoUpdateEnabled()
             } else {
-                self.updateCheckIdleMessage = "Up to date"
+                self.updateCheckIdleMessage = L10n.t("upToDate")
             }
         }
     }
