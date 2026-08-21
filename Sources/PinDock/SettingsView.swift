@@ -15,6 +15,22 @@ struct SettingsView: View {
     private var panelMaxHeight: CGFloat { compact ? 680 : 820 }
 
     var body: some View {
+        Group {
+            if compact {
+                compactBody
+            } else {
+                MainWindowView(state: state)
+            }
+        }
+        .onAppear {
+            state.refresh()
+            if state.autoCheckForUpdates {
+                state.checkForUpdates(force: false)
+            }
+        }
+    }
+
+    private var compactBody: some View {
         VStack(spacing: 0) {
             header
             ScrollView(.vertical, showsIndicators: true) {
@@ -35,19 +51,10 @@ struct SettingsView: View {
                 .padding(14)
             }
         }
-        .frame(minWidth: compact ? panelWidth : 380, idealWidth: panelWidth)
-        .frame(maxWidth: compact ? panelWidth : .infinity)
-        .frame(minHeight: compact ? nil : 480)
-        .frame(maxHeight: compact ? panelMaxHeight : .infinity)
+        .frame(width: panelWidth)
+        .frame(maxHeight: panelMaxHeight)
         .background { glassBackground }
-        .clipShape(RoundedRectangle(cornerRadius: compact ? 16 : 0, style: .continuous))
-        .onAppear {
-            state.refresh()
-            // Background auto-check also runs from AppState; this refreshes when the panel opens.
-            if state.autoCheckForUpdates {
-                state.checkForUpdates(force: false)
-            }
-        }
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     /// Maintainer: `PinDock --ui-preview-a11y` forces the Accessibility banner for screenshots.

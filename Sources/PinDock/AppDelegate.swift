@@ -327,16 +327,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         if mainWindow == nil {
             let hosting = NSHostingController(rootView: SettingsView(state: AppState.shared, compact: false))
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 420, height: 760),
+                contentRect: NSRect(x: 0, y: 0, width: 760, height: 560),
                 styleMask: [.titled, .closable, .miniaturizable, .resizable],
                 backing: .buffered,
                 defer: false
             )
             window.title = "PinDock"
+            window.titlebarAppearsTransparent = false
             window.isReleasedWhenClosed = false
             window.contentViewController = hosting
-            window.contentMinSize = NSSize(width: 380, height: 520)
-            window.setFrameAutosaveName("PinDockMainWindow")
+            window.contentMinSize = NSSize(width: 640, height: 440)
+            window.setFrameAutosaveName("PinDockMainWindow.v2")
             window.delegate = self
             window.center()
             mainWindow = window
