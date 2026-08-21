@@ -350,7 +350,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: Self.defaultWindowSize),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -366,7 +366,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         window.setContentSize(Self.defaultWindowSize)
         window.delegate = self
         window.center()
-        window.setFrameAutosaveName("PinDockMainWindow.v10")
+        window.setFrameAutosaveName("PinDockMainWindow.v11")
         ensureComfortableWindowFrame(window)
         return window
     }

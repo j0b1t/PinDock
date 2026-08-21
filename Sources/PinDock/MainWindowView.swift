@@ -58,7 +58,10 @@ struct MainWindowView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .padding(10)
-        .background { windowGlass }
+        .background {
+            PinDockGlass()
+                .ignoresSafeArea()
+        }
         .frame(minWidth: 560, minHeight: 400)
         .toolbar {
             ToolbarItem(placement: .navigation) {
@@ -88,8 +91,7 @@ struct MainWindowView: View {
                 PinDockStatusChip(state: state)
             }
         }
-        .toolbarBackground(.visible, for: .windowToolbar)
-        .toolbarBackground(.ultraThinMaterial, for: .windowToolbar)
+        .toolbarBackground(.hidden, for: .windowToolbar)
         .background(
             GeometryReader { geo in
                 Color.clear
@@ -102,10 +104,6 @@ struct MainWindowView: View {
         )
         .id(state.appLanguage)
         .animation(.easeInOut(duration: 0.15), value: sidebarExpanded)
-    }
-
-    private var windowGlass: some View {
-        PinDockGlass()
     }
 
     private var sidebar: some View {
@@ -141,7 +139,7 @@ struct MainWindowView: View {
         .listStyle(.sidebar)
         .scrollContentBackground(.hidden)
         .listRowSeparator(.hidden)
-        .background(.ultraThinMaterial)
+        .background { PinDockGlass() }
     }
 
     @ViewBuilder
@@ -173,7 +171,7 @@ struct MainWindowView: View {
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(.ultraThinMaterial)
+        .background { PinDockGlass() }
     }
 
     // MARK: - General / enable
