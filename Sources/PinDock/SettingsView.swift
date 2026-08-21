@@ -87,12 +87,12 @@ struct SettingsView: View {
     @ViewBuilder
     private var glassBackground: some View {
         ZStack {
-            GlassBackdrop(material: .menu)
+            Rectangle().fill(.ultraThinMaterial)
             Rectangle()
                 .fill(
                     colorScheme == .dark
-                        ? Color.white.opacity(0.05)
-                        : Color.white.opacity(0.22)
+                        ? Color.white.opacity(0.04)
+                        : Color.white.opacity(0.35)
                 )
                 .blendMode(.plusLighter)
         }
@@ -102,24 +102,16 @@ struct SettingsView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            PinDockAppIcon(size: 28)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("PinDock")
-                    .font(.system(size: 14, weight: .semibold))
-                Text(state.statusLine)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-            Spacer(minLength: 6)
-            Toggle("", isOn: $state.isEnabled)
-                .toggleStyle(.switch)
-                .controlSize(.small)
-                .labelsHidden()
-                .help(state.statusLine)
+            PinDockMark(size: 26)
+            Text(state.statusLine)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+            Spacer(minLength: 0)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
+        .background(.ultraThinMaterial.opacity(0.45))
     }
 
     // MARK: - Banners

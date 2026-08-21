@@ -350,15 +350,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: Self.defaultWindowSize),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.title = "PinDock"
         window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
-        window.isOpaque = false
-        window.backgroundColor = .clear
+        window.titlebarAppearsTransparent = false
         window.isReleasedWhenClosed = false
         window.contentViewController = hosting
         window.contentMinSize = Self.minWindowSize
@@ -366,7 +364,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         window.delegate = self
         window.center()
         // Autosave only after a valid default frame is applied, then reject tiny restores.
-        window.setFrameAutosaveName("PinDockMainWindow.v6")
+        window.setFrameAutosaveName("PinDockMainWindow.v5")
         ensureComfortableWindowFrame(window)
         return window
     }
