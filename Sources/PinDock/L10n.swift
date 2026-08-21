@@ -151,6 +151,8 @@ enum L10n {
         "general.subtitle": "Turn PinDock on or off. When off, macOS moves the Dock as usual.",
         "updates.footer": "Auto check is off by default. Auto install only runs after verification.",
         "upToDate": "Up to date",
+        "sidebar.hide": "Hide sidebar",
+        "sidebar.show": "Show sidebar",
     ]
 
     private static let de: [String: String] = [
@@ -239,6 +241,8 @@ enum L10n {
         "none": "Keine",
         "general.subtitle": "PinDock ein- oder ausschalten. Aus = macOS bewegt das Dock wie gewohnt.",
         "updates.footer": "Automatische Suche ist standardmäßig aus. Auto-Install nur nach Prüfung.",
+        "sidebar.hide": "Seitenleiste ausblenden",
+        "sidebar.show": "Seitenleiste einblenden",
     ]
 
     private static let fr: [String: String] = [

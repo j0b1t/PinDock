@@ -44,90 +44,92 @@ struct MainWindowView: View {
         }
     }
 
+    @State private var sidebarExpanded = true
+
+    private var sidebarWidth: CGFloat { sidebarExpanded ? 216 : 56 }
+
     var body: some View {
-        NavigationSplitView {
-            List(selection: $pane) {
-                sidebarBrand
-                    .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 8, trailing: 4))
-                    .listRowSeparator(.hidden)
-
-                Section {
-                    enableRow
-                }
-
-                Section {
-                    ForEach(WindowPane.allCases.filter { $0 != .general }) { item in
-                        Label(item.title, systemImage: item.symbol)
-                            .tag(item)
-                    }
-                }
-            }
-            .listStyle(.sidebar)
-            .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
-        } detail: {
-            detail
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        }
-        .navigationTitle("")
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
-                HStack(spacing: 10) {
-                    appIcon
-                        .frame(width: 28, height: 28)
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("PinDock")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text(pane.title)
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            ToolbarItem(placement: .automatic) {
-                HStack(spacing: 8) {
-                    Circle()
-                        .fill(state.isEnabled && state.isRunning ? Color.green : Color.secondary.opacity(0.45))
-                        .frame(width: 8, height: 8)
-                    Text(state.isEnabled ? L10n.t("on") : L10n.t("off"))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
-                }
-                .help(state.statusLine)
+        HStack(spacing: 0) {
+            sidebar
+                .frame(width: sidebarWidth)
+                .frame(maxHeight: .infinity)
+            Divider()
+            VStack(spacing: 0) {
+                chromeBar
+                Divider()
+                detail
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
-        .background(.ultraThinMaterial)
+        .background(Color(nsColor: .windowBackgroundColor))
         .frame(minWidth: 780, minHeight: 520)
         .frame(idealWidth: 920, idealHeight: 640)
         .id(state.appLanguage)
+        .animation(.easeInOut(duration: 0.18), value: sidebarExpanded)
     }
 
-    private var sidebarBrand: some View {
+    /// Collapse control (left) · circular icon · PinDock · current page · on/off at trailing edge.
+    private var chromeBar: some View {
         HStack(spacing: 10) {
+            Button {
+                sidebarExpanded.toggle()
+            } label: {
+                Image(systemName: "sidebar.leading")
+                    .font(.system(size: 14, weight: .medium))
+                    .frame(width: 22, height: 22)
+            }
+            .buttonStyle(.plain)
+            .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
+
             appIcon
-                .frame(width: 36, height: 36)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("PinDock")
-                    .font(.system(size: 15, weight: .semibold))
-                Text(L10n.t("version", state.appVersion))
-                    .font(.system(size: 11))
+                .frame(width: 22, height: 22)
+                .clipShape(Circle())
+
+            Text("PinDock")
+                .font(.system(size: 13, weight: .semibold))
+
+            if pane != .general {
+                Text(pane.title)
+                    .font(.system(size: 13))
                     .foregroundStyle(.secondary)
             }
-            Spacer(minLength: 0)
+
+            Spacer(minLength: 12)
+
+            Toggle(isOn: $state.isEnabled) {
+                Text(state.isEnabled ? L10n.t("on") : L10n.t("off"))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .help(state.statusLine)
         }
-        .padding(.vertical, 4)
+        .padding(.leading, 78) // room for traffic lights in the unified title bar
+        .padding(.trailing, 12)
+        .padding(.vertical, 8)
+        .background(.bar)
     }
 
-    private var enableRow: some View {
-        Toggle(isOn: $state.isEnabled) {
-            VStack(alignment: .leading, spacing: 1) {
-                Text(L10n.t("enable"))
-                Text(state.isEnabled ? L10n.t("on") : L10n.t("off"))
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+    private var sidebar: some View {
+        List(selection: $pane) {
+            ForEach(WindowPane.allCases) { item in
+                if sidebarExpanded {
+                    Label(item.title, systemImage: item.symbol)
+                        .tag(item)
+                        .help(item.title)
+                } else {
+                    Image(systemName: item.symbol)
+                        .font(.system(size: 14, weight: .medium))
+                        .frame(maxWidth: .infinity)
+                        .tag(item)
+                        .help(item.title)
+                }
             }
         }
-        .toggleStyle(.switch)
-        .controlSize(.small)
+        .listStyle(.sidebar)
+        .scrollContentBackground(.hidden)
+        .background(.ultraThinMaterial)
     }
 
     @ViewBuilder
