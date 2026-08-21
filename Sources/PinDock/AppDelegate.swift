@@ -66,7 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     private var previewWindow: NSWindow?
 
     private func showUIPreviewWindow() {
-        let panelW: CGFloat = 360
+        let panelW: CGFloat = SettingsView.compactPanelSize.width
         let panelH: CGFloat = 680
         let root = SettingsView(state: AppState.shared)
             .frame(width: panelW, height: panelH)
@@ -214,7 +214,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         pop.behavior = .transient // click outside / Escape dismisses
         pop.animates = true
         pop.delegate = self
-        // Same appearance as the app window (not extra-vibrant, which looks darker).
+        // Aqua — not vibrantDark/Light. Vibrant chrome is darker than the app window.
         pop.appearance = NSApp.effectiveAppearance
         popover = pop
     }
@@ -233,20 +233,60 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         AppState.shared.checkForUpdates(force: false)
 
         popover?.appearance = NSApp.effectiveAppearance
-        popover?.contentSize = NSSize(width: 360, height: 540)
+        popover?.contentSize = SettingsView.compactPanelSize
 
         NSApp.activate(ignoringOtherApps: true)
         popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
 
         if let view = popover?.contentViewController?.view {
-            view.wantsLayer = true
-            view.layer?.backgroundColor = NSColor.clear.cgColor
-            view.window?.isOpaque = false
-            view.window?.backgroundColor = .clear
-            view.window?.appearance = NSApp.effectiveAppearance
+            matchPopoverGlass(hostingView: view)
         }
         installPopoverDismissMonitors()
         popover?.contentViewController?.view.window?.makeKey()
+    }
+
+    /// Popover chrome uses `.popover` material (darker). Drop it so PinDockGlass
+    /// composites over the desktop like the standalone window.
+    private func matchPopoverGlass(hostingView: NSView) {
+        let appearance = NSApp.effectiveAppearance
+        hostingView.appearance = appearance
+        hostingView.wantsLayer = true
+        hostingView.layer?.backgroundColor = NSColor.clear.cgColor
+
+        guard let window = hostingView.window else { return }
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.appearance = appearance
+
+        var ancestorIDs = Set<ObjectIdentifier>()
+        var ancestor = hostingView.superview
+        while let view = ancestor {
+            ancestorIDs.insert(ObjectIdentifier(view))
+            ancestor = view.superview
+        }
+
+        func walk(_ view: NSView) {
+            if view === hostingView { return }
+            if let effect = view as? NSVisualEffectView {
+                effect.material = .underWindowBackground
+                effect.blendingMode = .behindWindow
+                effect.isEmphasized = true
+                if ancestorIDs.contains(ObjectIdentifier(effect)) {
+                    // Parent of our content — hiding it would hide the panel.
+                    // Inactive = no extra popover blur on top of PinDockGlass.
+                    effect.state = .inactive
+                } else {
+                    effect.isHidden = true
+                }
+            }
+            for sub in view.subviews where sub !== hostingView {
+                walk(sub)
+            }
+        }
+
+        if let root = window.contentView?.superview ?? window.contentView {
+            walk(root)
+        }
     }
 
     private func installPopoverDismissMonitors() {
@@ -302,6 +342,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 
     func popoverWillShow(_ notification: Notification) {
         AppState.shared.refresh()
+    }
+
+    func popoverDidShow(_ notification: Notification) {
+        if let view = popover?.contentViewController?.view {
+            matchPopoverGlass(hostingView: view)
+        }
     }
 
     func popoverDidClose(_ notification: Notification) {

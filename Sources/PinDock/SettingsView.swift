@@ -16,10 +16,10 @@ struct SettingsView: View {
 
     @State private var compactTab: CompactTab = .dock
 
-    private var panelWidth: CGFloat { compact ? 360 : 420 }
-    /// Tall enough that Displays → Allowed → Behavior fit without scrolling
-    /// when no banners are showing (Permissions / Updates may still scroll).
-    private var panelMaxHeight: CGFloat { compact ? 680 : 820 }
+    /// Wide enough that “Show PinDock” + “Menu bar and App” stay on one row.
+    static let compactPanelSize = CGSize(width: 440, height: 540)
+
+    private var panelWidth: CGFloat { compact ? Self.compactPanelSize.width : 420 }
 
     var body: some View {
         Group {
@@ -71,7 +71,7 @@ struct SettingsView: View {
             }
         }
         // Fixed size so the popover does not jump when switching Dock / Settings.
-        .frame(width: panelWidth, height: 540)
+        .frame(width: panelWidth, height: Self.compactPanelSize.height)
         .background { glassBackground }
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
@@ -317,12 +317,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 6) {
             sectionLabel(L10n.t("pane.appearance"), systemImage: "macwindow")
             VStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(L10n.t("showPinDock"))
-                        .font(.system(size: 12, weight: .medium))
-                    Text(state.appPresentation.localizedSubtitle)
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
+                settingsRow(L10n.t("showPinDock"), state.appPresentation.localizedSubtitle) {
                     Picker("", selection: $state.appPresentation) {
                         ForEach(AppPresentation.allCases) { mode in
                             Text(mode.localizedLabel).tag(mode)
@@ -330,10 +325,8 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize()
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
                 Divider().padding(.leading, 12)
                 settingsRow(L10n.t("language"), L10n.t("language.hint")) {
                     Picker("", selection: $state.appLanguage) {
@@ -548,13 +541,16 @@ struct SettingsView: View {
         HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 1) {
                 Text(title).font(.system(size: 12, weight: .medium))
+                    .lineLimit(1)
                 Text(subtitle)
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Spacer(minLength: 6)
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             trailing()
+                .layoutPriority(1)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
