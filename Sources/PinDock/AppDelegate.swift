@@ -2,13 +2,18 @@ import Cocoa
 import SwiftUI
 import ApplicationServices
 
-final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowDelegate {
     private var statusItem: NSStatusItem?
     private var popover: NSPopover?
     private var hostingController: NSHostingController<SettingsView>?
+    private var mainWindow: NSWindow?
 
     /// Last known display IDs — used so we only auto-restore on real plug/unplug.
     private var knownDisplayIDs: Set<UInt32> = []
+
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        applyActivationPolicy(Preferences.shared.appPresentation)
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         DisplayManager.shared.refresh()
@@ -44,13 +49,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             return
         }
 
-        setupStatusItem()
-        setupPopover()
         registerNotifications()
         LaunchAtLogin.syncFromPreferences()
+        let mode = Preferences.shared.appPresentation
+        // Window-only needs a visible UI on launch; "both" can stay menu-bar-first.
+        applyPresentation(mode, revealWindow: mode == .window)
 
         updateStatusIcon()
-        // Do not auto-open panel on launch — Control Center style: user opens it.
+        // Menu-bar-only: do not auto-open the popover (Control Center style).
+        // Window / both: show the standalone window so there is a visible UI.
     }
 
     /// Borderless floating window with the real SettingsView (for README screenshots).
@@ -107,8 +114,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        togglePopover()
+        let mode = Preferences.shared.appPresentation
+        if mode.showsWindow {
+            showMainWindow()
+        } else if mode.showsMenuBar {
+            togglePopover()
+        }
         return true
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        // Utility stays running (engine + optional menu bar) when the window is closed.
+        false
+    }
+
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        sender.orderOut(nil)
+        return false
     }
 
     // MARK: - Status item
@@ -214,7 +236,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         popover?.contentViewController?.view.window?.makeKey()
     }
 
-    @objc private func openPanelAction() { togglePopover() }
+    @objc private func openPanelAction() {
+        let mode = Preferences.shared.appPresentation
+        if mode.showsWindow {
+            showMainWindow()
+        } else {
+            togglePopover()
+        }
+    }
 
     @objc private func relocateAction() {
         AppState.shared.moveBackToDefault()
@@ -249,6 +278,75 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             name: NSApplication.didChangeScreenParametersNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(onPresentationChange(_:)),
+            name: .pindockPresentationDidChange,
+            object: nil
+        )
+    }
+
+    @objc private func onPresentationChange(_ notification: Notification) {
+        let mode = (notification.object as? AppPresentation) ?? Preferences.shared.appPresentation
+        applyPresentation(mode, revealWindow: mode.showsWindow)
+    }
+
+    // MARK: - Presentation (menu bar / window / both)
+
+    private func applyActivationPolicy(_ mode: AppPresentation) {
+        NSApp.setActivationPolicy(mode.activationPolicy)
+    }
+
+    private func applyPresentation(_ mode: AppPresentation, revealWindow: Bool) {
+        applyActivationPolicy(mode)
+
+        if mode.showsMenuBar {
+            if statusItem == nil { setupStatusItem() }
+            if popover == nil { setupPopover() }
+            updateStatusIcon()
+        } else {
+            popover?.performClose(nil)
+            if let item = statusItem {
+                NSStatusBar.system.removeStatusItem(item)
+                statusItem = nil
+            }
+            popover = nil
+            hostingController = nil
+        }
+
+        if mode.showsWindow {
+            if revealWindow {
+                showMainWindow()
+            }
+        } else {
+            mainWindow?.orderOut(nil)
+        }
+    }
+
+    private func showMainWindow() {
+        if mainWindow == nil {
+            let hosting = NSHostingController(rootView: SettingsView(state: AppState.shared, compact: false))
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 420, height: 760),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                backing: .buffered,
+                defer: false
+            )
+            window.title = "PinDock"
+            window.isReleasedWhenClosed = false
+            window.contentViewController = hosting
+            window.contentMinSize = NSSize(width: 380, height: 520)
+            window.setFrameAutosaveName("PinDockMainWindow")
+            window.delegate = self
+            window.center()
+            mainWindow = window
+        }
+        AppState.shared.refresh()
+        if AppState.shared.autoCheckForUpdates {
+            AppState.shared.checkForUpdates(force: false)
+        }
+        mainWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc private func onWake() {

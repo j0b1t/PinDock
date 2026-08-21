@@ -1,15 +1,18 @@
 import SwiftUI
 import AppKit
 
-/// Control-Center-style panel shown in an `NSPopover` under the menu bar icon.
+/// Control-Center-style panel shown in an `NSPopover` or a standalone window.
 struct SettingsView: View {
     @ObservedObject var state: AppState
     @Environment(\.colorScheme) private var colorScheme
 
-    private let panelWidth: CGFloat = 360
+    /// Compact = menu-bar popover; false = larger standalone window.
+    var compact: Bool = true
+
+    private var panelWidth: CGFloat { compact ? 360 : 420 }
     /// Tall enough that Displays → Allowed → Behavior fit without scrolling
     /// when no banners are showing (Permissions / Updates may still scroll).
-    private let panelMaxHeight: CGFloat = 680
+    private var panelMaxHeight: CGFloat { compact ? 680 : 820 }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,6 +26,7 @@ struct SettingsView: View {
                     }
                     defaultSection
                     allowListSection
+                    appearanceSection
                     behaviorSection
                     permissionsSection
                     updatesSection
@@ -31,10 +35,12 @@ struct SettingsView: View {
                 .padding(14)
             }
         }
-        .frame(width: panelWidth)
-        .frame(maxHeight: panelMaxHeight)
+        .frame(minWidth: compact ? panelWidth : 380, idealWidth: panelWidth)
+        .frame(maxWidth: compact ? panelWidth : .infinity)
+        .frame(minHeight: compact ? nil : 480)
+        .frame(maxHeight: compact ? panelMaxHeight : .infinity)
         .background { glassBackground }
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: compact ? 16 : 0, style: .continuous))
         .onAppear {
             state.refresh()
             // Background auto-check also runs from AppState; this refreshes when the panel opens.
@@ -307,6 +313,28 @@ struct SettingsView: View {
                     if index < state.displays.count - 1 {
                         Divider().padding(.leading, 12)
                     }
+                }
+            }
+            .background(chipFill)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+    }
+
+    // MARK: - Appearance
+
+    private var appearanceSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            sectionLabel("Appearance")
+            VStack(spacing: 0) {
+                settingsRow("Show PinDock", state.appPresentation.subtitle) {
+                    Picker("", selection: $state.appPresentation) {
+                        ForEach(AppPresentation.allCases) { mode in
+                            Text(mode.shortLabel).tag(mode)
+                        }
+                    }
+                    .labelsHidden()
+                    .controlSize(.small)
+                    .frame(width: 118)
                 }
             }
             .background(chipFill)

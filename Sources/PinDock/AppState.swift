@@ -46,6 +46,14 @@ final class AppState: ObservableObject {
         didSet { LaunchAtLogin.isEnabled = launchAtLogin }
     }
 
+    @Published var appPresentation: AppPresentation {
+        didSet {
+            guard oldValue != appPresentation else { return }
+            Preferences.shared.appPresentation = appPresentation
+            NotificationCenter.default.post(name: .pindockPresentationDidChange, object: appPresentation)
+        }
+    }
+
     @Published var blockedDisplayIDs: Set<UInt32> {
         didSet { Preferences.shared.blockedDisplayIDs = blockedDisplayIDs }
     }
@@ -108,6 +116,7 @@ final class AppState: ObservableObject {
         modifierKey = prefs.modifierKey
         restoreOnWake = prefs.restoreOnWake
         launchAtLogin = LaunchAtLogin.isEnabled
+        appPresentation = prefs.appPresentation
         blockedDisplayIDs = prefs.blockedDisplayIDs
         autoCheckForUpdates = prefs.autoCheckForUpdates
         autoInstallUpdates = prefs.autoInstallUpdates

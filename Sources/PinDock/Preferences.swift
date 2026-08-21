@@ -1,6 +1,39 @@
 import Cocoa
 import CoreGraphics
 
+/// How PinDock appears: menu bar extra, standalone window, or both.
+enum AppPresentation: String, CaseIterable, Hashable, Identifiable {
+    var id: String { rawValue }
+
+    case menuBar
+    case window
+    case both
+
+    var shortLabel: String {
+        switch self {
+        case .menuBar: return "Menu bar"
+        case .window: return "Window"
+        case .both: return "Both"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .menuBar: return "Pin in the menu bar only (default)"
+        case .window: return "Dock icon and a larger app window"
+        case .both: return "Menu bar pin and a standalone window"
+        }
+    }
+
+    var showsMenuBar: Bool { self == .menuBar || self == .both }
+    var showsWindow: Bool { self == .window || self == .both }
+    var showsDockIcon: Bool { showsWindow }
+
+    var activationPolicy: NSApplication.ActivationPolicy {
+        showsDockIcon ? .regular : .accessory
+    }
+}
+
 enum ModifierKey: String, CaseIterable, Hashable, Identifiable {
     var id: String { rawValue }
 
@@ -31,6 +64,10 @@ enum ModifierKey: String, CaseIterable, Hashable, Identifiable {
     }
 }
 
+extension Notification.Name {
+    static let pindockPresentationDidChange = Notification.Name("pindockPresentationDidChange")
+}
+
 final class Preferences {
     static let shared = Preferences()
 
@@ -53,6 +90,7 @@ final class Preferences {
         static let lastUpdateCheckAt = "lastUpdateCheckAt"
         static let autoCheckForUpdates = "autoCheckForUpdates"
         static let autoInstallUpdates = "autoInstallUpdates"
+        static let appPresentation = "appPresentation"
         // Legacy key migration
         static let legacyAnchor = "anchorDisplayID"
     }
@@ -171,6 +209,15 @@ final class Preferences {
     var autoInstallUpdates: Bool {
         get { defaults.bool(forKey: Keys.autoInstallUpdates) }
         set { defaults.set(newValue, forKey: Keys.autoInstallUpdates) }
+    }
+
+    /// Menu bar / window / both. Default: menu bar only.
+    var appPresentation: AppPresentation {
+        get {
+            let raw = defaults.string(forKey: Keys.appPresentation) ?? AppPresentation.menuBar.rawValue
+            return AppPresentation(rawValue: raw) ?? .menuBar
+        }
+        set { defaults.set(newValue.rawValue, forKey: Keys.appPresentation) }
     }
 
     var triggerZonePixels: CGFloat {

@@ -3,6 +3,6 @@ import Cocoa
 let app = NSApplication.shared
 let delegate = AppDelegate()
 app.delegate = delegate
-// Accessory = no Dock icon; settings window still works when opened from menu bar.
-app.setActivationPolicy(.accessory)
+// Policy is applied in applicationWillFinishLaunching from Appearance preference
+// (menu bar → accessory, window/both → regular Dock icon).
 app.run()

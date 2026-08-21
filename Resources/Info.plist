@@ -24,8 +24,6 @@
 	<string>5</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>13.0</string>
-	<key>LSUIElement</key>
-	<true/>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>PinDock needs access to keep the Dock on your chosen display.</string>
 	<key>NSHighResolutionCapable</key>
