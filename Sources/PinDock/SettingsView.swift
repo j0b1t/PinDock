@@ -101,7 +101,6 @@ struct SettingsView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background { PinDockGlass() }
     }
 
     // MARK: - Banners

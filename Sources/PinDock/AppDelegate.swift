@@ -7,6 +7,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     private var popover: NSPopover?
     private var hostingController: NSHostingController<SettingsView>?
     private var mainWindow: NSWindow?
+    private var popoverLocalClickMonitor: Any?
+    private var popoverGlobalClickMonitor: Any?
 
     /// Last known display IDs — used so we only auto-restore on real plug/unplug.
     private var knownDisplayIDs: Set<UInt32> = []
@@ -111,6 +113,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     func applicationWillTerminate(_ notification: Notification) {
         PinDockEngine.shared.stop()
         popover?.performClose(nil)
+        removePopoverDismissMonitors()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -131,6 +134,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         sender.orderOut(nil)
         return false
+    }
+
+    func windowDidBecomeKey(_ notification: Notification) {
+        guard (notification.object as? NSWindow) === mainWindow else { return }
+        popover?.performClose(nil)
+    }
+
+    func applicationDidResignActive(_ notification: Notification) {
+        popover?.performClose(nil)
     }
 
     // MARK: - Status item
@@ -202,12 +214,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         pop.behavior = .transient // click outside / Escape dismisses
         pop.animates = true
         pop.delegate = self
-        // Semitransparent system chrome — materials in the SwiftUI view show through.
-        if let match = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) {
-            pop.appearance = NSAppearance(named: match == .darkAqua ? .vibrantDark : .vibrantLight)
-        } else {
-            pop.appearance = NSAppearance(named: .vibrantLight)
-        }
+        // Same appearance as the app window (not extra-vibrant, which looks darker).
+        pop.appearance = NSApp.effectiveAppearance
         popover = pop
     }
 
@@ -224,12 +232,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         AppState.shared.refresh()
         AppState.shared.checkForUpdates(force: false)
 
-        // Adaptive appearance (light/dark)
-        if let appearance = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) {
-            popover?.appearance = NSAppearance(named: appearance == .darkAqua ? .vibrantDark : .vibrantLight)
-        }
-
-        // Matches SettingsView compact frame (fixed, so Dock/Settings tabs don’t resize the popover).
+        popover?.appearance = NSApp.effectiveAppearance
         popover?.contentSize = NSSize(width: 360, height: 540)
 
         NSApp.activate(ignoringOtherApps: true)
@@ -240,8 +243,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             view.layer?.backgroundColor = NSColor.clear.cgColor
             view.window?.isOpaque = false
             view.window?.backgroundColor = .clear
+            view.window?.appearance = NSApp.effectiveAppearance
         }
+        installPopoverDismissMonitors()
         popover?.contentViewController?.view.window?.makeKey()
+    }
+
+    private func installPopoverDismissMonitors() {
+        removePopoverDismissMonitors()
+        popoverLocalClickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            self?.dismissPopoverIfClickOutside(event)
+            return event
+        }
+        popoverGlobalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            DispatchQueue.main.async { self?.popover?.performClose(nil) }
+        }
+    }
+
+    private func removePopoverDismissMonitors() {
+        if let popoverLocalClickMonitor {
+            NSEvent.removeMonitor(popoverLocalClickMonitor)
+            self.popoverLocalClickMonitor = nil
+        }
+        if let popoverGlobalClickMonitor {
+            NSEvent.removeMonitor(popoverGlobalClickMonitor)
+            self.popoverGlobalClickMonitor = nil
+        }
+    }
+
+    private func dismissPopoverIfClickOutside(_ event: NSEvent) {
+        guard popover?.isShown == true else { return }
+        if event.window === popover?.contentViewController?.view.window { return }
+        if let button = statusItem?.button, event.window === button.window {
+            let loc = button.convert(event.locationInWindow, from: nil)
+            if button.bounds.contains(loc) { return }
+        }
+        popover?.performClose(nil)
     }
 
     @objc private func openPanelAction() {
@@ -268,7 +305,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     func popoverDidClose(_ notification: Notification) {
-        // nothing sticky
+        removePopoverDismissMonitors()
     }
 
     // MARK: - Notifications
