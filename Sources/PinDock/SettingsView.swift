@@ -74,6 +74,8 @@ struct SettingsView: View {
         .frame(width: panelWidth, height: Self.compactPanelSize.height)
         .background { glassBackground }
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        // Menu-bar panel is often not the key window — keep glass/controls looking active.
+        .environment(\.controlActiveState, .key)
     }
 
     /// Maintainer: `PinDock --ui-preview-a11y` forces the Accessibility banner for screenshots.

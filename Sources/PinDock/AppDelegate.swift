@@ -9,11 +9,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     private var mainWindow: NSWindow?
     private var popoverLocalClickMonitor: Any?
     private var popoverGlobalClickMonitor: Any?
+    /// True while the menu-bar panel is opening so we don’t treat that as “open the app”.
+    private var suppressWindowOnActivation = false
+    /// Login-item launch must not steal focus or open the window.
+    private var startedAtLogin = false
+    /// Swallow the first activation after a login launch only.
+    private var ignoreLaunchActivation = false
 
     /// Last known display IDs — used so we only auto-restore on real plug/unplug.
     private var knownDisplayIDs: Set<UInt32> = []
 
     func applicationWillFinishLaunching(_ notification: Notification) {
+        startedAtLogin = Self.launchedAsLoginItem()
+        ignoreLaunchActivation = startedAtLogin
         applyActivationPolicy(Preferences.shared.appPresentation)
     }
 
@@ -54,12 +62,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         registerNotifications()
         LaunchAtLogin.syncFromPreferences()
         let mode = Preferences.shared.appPresentation
-        // Window-only needs a visible UI on launch; "both" can stay menu-bar-first.
-        applyPresentation(mode, revealWindow: mode == .window)
+        // Spotlight / Dock / double-click: open the window when the user launched us.
+        // Login item and menu-bar clicks must not.
+        applyPresentation(mode, revealWindow: mode.showsWindow && !startedAtLogin)
 
         updateStatusIcon()
-        // Menu-bar-only: do not auto-open the popover (Control Center style).
-        // Window / both: show the standalone window so there is a visible UI.
     }
 
     /// Borderless floating window with the real SettingsView (for README screenshots).
@@ -117,6 +124,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // Dock icon, Spotlight, or Finder — open the app window when it exists as an app.
+        // Menu-bar-only has no Dock icon; reopen then just shows the panel.
         let mode = Preferences.shared.appPresentation
         if mode.showsWindow {
             showMainWindow()
@@ -124,6 +133,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             togglePopover()
         }
         return true
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        // Menu-bar panel must not open the window or keep us frontmost.
+        if suppressWindowOnActivation { return }
+        if popover?.isShown == true { return }
+        if ignoreLaunchActivation {
+            ignoreLaunchActivation = false
+            return
+        }
+        guard Preferences.shared.appPresentation.showsWindow else { return }
+        if mainWindow?.isVisible != true {
+            showMainWindow()
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -142,6 +165,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     func applicationDidResignActive(_ notification: Notification) {
+        // Yielding focus after opening the menu-bar panel is not a dismiss.
+        if suppressWindowOnActivation { return }
         popover?.performClose(nil)
     }
 
@@ -235,14 +260,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         popover?.appearance = NSApp.effectiveAppearance
         popover?.contentSize = SettingsView.compactPanelSize
 
-        NSApp.activate(ignoringOtherApps: true)
+        // Control Center style: panel only. Do not activate PinDock or open the window.
+        let previousApp = NSWorkspace.shared.frontmostApplication
+        let wasActive = NSApp.isActive
+        suppressWindowOnActivation = true
+
         popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
 
         if let view = popover?.contentViewController?.view {
             matchPopoverGlass(hostingView: view)
+            if let panel = view.window as? NSPanel {
+                panel.hidesOnDeactivate = false
+                panel.becomesKeyOnlyIfNeeded = true
+            }
+            view.window?.resignKey()
         }
         installPopoverDismissMonitors()
-        popover?.contentViewController?.view.window?.makeKey()
+
+        if !wasActive {
+            yieldActivation(to: previousApp)
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.suppressWindowOnActivation = false
+        }
+    }
+
+    private func yieldActivation(to app: NSRunningApplication?) {
+        guard let app, app != NSRunningApplication.current else { return }
+        app.activate(options: .activateIgnoringOtherApps)
+    }
+
+    private static func launchedAsLoginItem() -> Bool {
+        let launchedAsLogin: AEKeyword = 0x6C676974 // 'lgit'
+        guard let event = NSAppleEventManager.shared().currentAppleEvent else { return false }
+        return event.attributeDescriptor(forKeyword: launchedAsLogin)?.booleanValue == true
     }
 
     /// Popover chrome uses `.popover` material (darker). Drop it so PinDockGlass
@@ -273,7 +325,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
                 effect.isEmphasized = true
                 if ancestorIDs.contains(ObjectIdentifier(effect)) {
                     // Parent of our content — hiding it would hide the panel.
-                    // Inactive = no extra popover blur on top of PinDockGlass.
+                    // Inactive chrome = no extra popover blur on top of PinDockGlass.
                     effect.state = .inactive
                 } else {
                     effect.isHidden = true
@@ -287,6 +339,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         if let root = window.contentView?.superview ?? window.contentView {
             walk(root)
         }
+
+        // Keep PinDockGlass looking like the foreground window even if we are not active.
+        func forceActive(_ view: NSView) {
+            if let effect = view as? NSVisualEffectView {
+                effect.state = .active
+                effect.isEmphasized = true
+            }
+            for sub in view.subviews { forceActive(sub) }
+        }
+        forceActive(hostingView)
     }
 
     private func installPopoverDismissMonitors() {
