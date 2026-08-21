@@ -320,7 +320,7 @@ struct MainWindowView: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .frame(width: 128, alignment: .trailing)
+                    .fixedSize()
                 }
                 windowRow(L10n.t("restoreWake"), L10n.t("restoreWake.hint")) {
                     Toggle("", isOn: $state.restoreOnWake)
@@ -351,7 +351,7 @@ struct MainWindowView: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .frame(width: 128, alignment: .trailing)
+                    .fixedSize()
                 }
                 windowRow(L10n.t("language"), L10n.t("language.hint"), showDivider: false) {
                     Picker("", selection: $state.appLanguage) {
@@ -361,7 +361,7 @@ struct MainWindowView: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .frame(width: 128, alignment: .trailing)
+                    .fixedSize()
                 }
             }
         }

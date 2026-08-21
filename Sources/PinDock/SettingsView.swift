@@ -317,7 +317,12 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 6) {
             sectionLabel(L10n.t("pane.appearance"), systemImage: "macwindow")
             VStack(spacing: 0) {
-                settingsRow(L10n.t("showPinDock"), state.appPresentation.localizedSubtitle) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(L10n.t("showPinDock"))
+                        .font(.system(size: 12, weight: .medium))
+                    Text(state.appPresentation.localizedSubtitle)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
                     Picker("", selection: $state.appPresentation) {
                         ForEach(AppPresentation.allCases) { mode in
                             Text(mode.localizedLabel).tag(mode)
@@ -325,9 +330,10 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .controlSize(.small)
-                    .frame(width: 128, alignment: .trailing)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
                 Divider().padding(.leading, 12)
                 settingsRow(L10n.t("language"), L10n.t("language.hint")) {
                     Picker("", selection: $state.appLanguage) {
@@ -337,8 +343,7 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .controlSize(.small)
-                    .frame(width: 128, alignment: .trailing)
+                    .fixedSize()
                 }
             }
             .background(chipFill)
@@ -366,8 +371,7 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .controlSize(.small)
-                    .frame(width: 128, alignment: .trailing)
+                    .fixedSize()
                 }
                 Divider().padding(.leading, 12)
                 settingsRow(L10n.t("restoreWake"), L10n.t("restoreWake.hint")) {
