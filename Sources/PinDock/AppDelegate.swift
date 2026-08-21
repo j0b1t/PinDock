@@ -203,8 +203,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         pop.animates = true
         pop.delegate = self
         // Semitransparent system chrome — materials in the SwiftUI view show through.
-        pop.appearance = NSAppearance(named: .vibrantDark)
-            ?? NSAppearance(named: .aqua)
+        if let match = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) {
+            pop.appearance = NSAppearance(named: match == .darkAqua ? .vibrantDark : .vibrantLight)
+        } else {
+            pop.appearance = NSAppearance(named: .vibrantLight)
+        }
         popover = pop
     }
 
@@ -347,13 +350,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: Self.defaultWindowSize),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
         window.title = "PinDock"
         window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = false
+        window.titlebarAppearsTransparent = true
+        window.isOpaque = false
+        window.backgroundColor = .clear
         window.isReleasedWhenClosed = false
         window.contentViewController = hosting
         window.contentMinSize = Self.minWindowSize
@@ -361,7 +366,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         window.delegate = self
         window.center()
         // Autosave only after a valid default frame is applied, then reject tiny restores.
-        window.setFrameAutosaveName("PinDockMainWindow.v5")
+        window.setFrameAutosaveName("PinDockMainWindow.v6")
         ensureComfortableWindowFrame(window)
         return window
     }

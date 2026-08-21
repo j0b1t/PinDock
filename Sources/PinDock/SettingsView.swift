@@ -86,15 +86,13 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var glassBackground: some View {
-        // System materials approximate Control Center / Liquid Glass on older OS;
-        // on macOS 26+ popover chrome also adopts glass more automatically.
         ZStack {
-            Rectangle().fill(.ultraThinMaterial)
+            GlassBackdrop(material: .menu)
             Rectangle()
                 .fill(
                     colorScheme == .dark
-                        ? Color.white.opacity(0.04)
-                        : Color.white.opacity(0.35)
+                        ? Color.white.opacity(0.05)
+                        : Color.white.opacity(0.22)
                 )
                 .blendMode(.plusLighter)
         }
@@ -104,7 +102,7 @@ struct SettingsView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            PinDockMark(size: 26)
+            PinDockAppIcon(size: 28)
             VStack(alignment: .leading, spacing: 1) {
                 Text("PinDock")
                     .font(.system(size: 14, weight: .semibold))
@@ -114,11 +112,14 @@ struct SettingsView: View {
                     .lineLimit(2)
             }
             Spacer(minLength: 6)
-            PinDockStatusChip(state: state)
+            Toggle("", isOn: $state.isEnabled)
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .labelsHidden()
+                .help(state.statusLine)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(.ultraThinMaterial.opacity(0.45))
     }
 
     // MARK: - Banners
