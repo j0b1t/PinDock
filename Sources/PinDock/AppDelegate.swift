@@ -2,10 +2,9 @@ import Cocoa
 import SwiftUI
 import ApplicationServices
 
-final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowDelegate {
     private var statusItem: NSStatusItem?
-    /// Non-activating panel (not NSPopover) so the menu bar never brings PinDock forward.
-    private var menuBarPanel: NSPanel?
+    private var popover: NSPopover?
     private var hostingController: NSHostingController<SettingsView>?
     private var mainWindow: NSWindow?
     private var popoverLocalClickMonitor: Any?
@@ -112,7 +111,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         PinDockEngine.shared.stop()
-        closeMenuBarPanel()
+        popover?.performClose(nil)
         removePopoverDismissMonitors()
     }
 
@@ -136,11 +135,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func windowDidBecomeKey(_ notification: Notification) {
         guard (notification.object as? NSWindow) === mainWindow else { return }
-        closeMenuBarPanel()
+        popover?.performClose(nil)
     }
 
     func applicationDidResignActive(_ notification: Notification) {
-        closeMenuBarPanel()
+        popover?.performClose(nil)
     }
 
     // MARK: - Status item
@@ -177,7 +176,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func showContextMenu() {
         // Close popover so it doesn't fight the menu.
-        closeMenuBarPanel()
+        popover?.performClose(nil)
 
         let menu = NSMenu()
         let openItem = NSMenuItem(title: "Open PinDock…", action: #selector(openPanelAction), keyEquivalent: "")
@@ -200,140 +199,63 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
-    // MARK: - Menu-bar panel (does not activate the app)
+    // MARK: - Menu-bar popover (arrow + pop animation, does not activate the app)
 
-    private func setupMenuBarPanel() {
+    private func setupPopover() {
         let hosting = NSHostingController(rootView: SettingsView(state: AppState.shared))
         hostingController = hosting
-        let size = SettingsView.compactPanelSize
-        hosting.view.frame = NSRect(origin: .zero, size: size)
 
-        let panel = NSPanel(
-            contentRect: NSRect(origin: .zero, size: size),
-            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
-        panel.isOpaque = false
-        panel.backgroundColor = .clear
-        panel.hasShadow = true
-        panel.isFloatingPanel = true
-        panel.hidesOnDeactivate = false
-        panel.becomesKeyOnlyIfNeeded = true
-        panel.level = .popUpMenu
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        panel.isReleasedWhenClosed = false
-        panel.appearance = NSApp.effectiveAppearance
-        panel.contentViewController = hosting
-        panel.setContentSize(size)
-        menuBarPanel = panel
+        let pop = NSPopover()
+        pop.contentViewController = hosting
+        pop.contentSize = SettingsView.compactPanelSize
+        // applicationDefined: .transient closes itself when PinDock is not the active app.
+        pop.behavior = .applicationDefined
+        pop.animates = true
+        pop.delegate = self
+        pop.appearance = NSApp.effectiveAppearance
+        popover = pop
     }
 
     private func togglePopover() {
-        guard let button = statusItem?.button else { return }
-        if menuBarPanel?.isVisible == true {
-            closeMenuBarPanel()
+        guard let popover, let button = statusItem?.button else { return }
+        if popover.isShown {
+            popover.performClose(nil)
         } else {
-            showMenuBarPanel(relativeTo: button)
+            showPopover(relativeTo: button)
         }
     }
 
-    private func closeMenuBarPanel() {
-        menuBarPanel?.orderOut(nil)
-        removePopoverDismissMonitors()
-    }
-
-    private func showMenuBarPanel(relativeTo button: NSStatusBarButton) {
+    private func showPopover(relativeTo button: NSStatusBarButton) {
         AppState.shared.refresh()
         AppState.shared.checkForUpdates(force: false)
 
-        if menuBarPanel == nil { setupMenuBarPanel() }
-        guard let panel = menuBarPanel else { return }
-
-        panel.appearance = NSApp.effectiveAppearance
-        positionMenuBarPanel(panel, under: button)
-
-        // orderFrontRegardless: visible without making PinDock the front app.
-        panel.orderFrontRegardless()
-        if let view = panel.contentViewController?.view {
-            matchPopoverGlass(hostingView: view)
-        }
+        popover?.appearance = NSApp.effectiveAppearance
+        popover?.contentSize = SettingsView.compactPanelSize
+        // Do not NSApp.activate — that pulls PinDock to the foreground.
+        popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        preparePopoverWindow()
         installPopoverDismissMonitors()
     }
 
-    private func positionMenuBarPanel(_ panel: NSPanel, under button: NSStatusBarButton) {
-        let size = SettingsView.compactPanelSize
-        panel.setContentSize(size)
-        guard let buttonWindow = button.window else { return }
-        let inWindow = button.convert(button.bounds, to: nil)
-        let onScreen = buttonWindow.convertToScreen(inWindow)
-        var x = onScreen.midX - size.width / 2
-        var y = onScreen.minY - size.height - 6
-        if let vis = (buttonWindow.screen ?? NSScreen.main)?.visibleFrame {
-            x = min(max(x, vis.minX + 8), vis.maxX - size.width - 8)
-            if y < vis.minY { y = vis.minY + 8 }
+    /// Keep the system bubble + arrow. Don’t steal key/activation from the front app.
+    private func preparePopoverWindow() {
+        guard let view = popover?.contentViewController?.view else { return }
+        view.appearance = NSApp.effectiveAppearance
+        view.wantsLayer = true
+        view.layer?.backgroundColor = NSColor.clear.cgColor
+        guard let window = view.window else { return }
+        window.appearance = NSApp.effectiveAppearance
+        if let panel = window as? NSPanel {
+            panel.hidesOnDeactivate = false
+            panel.becomesKeyOnlyIfNeeded = true
+            panel.styleMask.insert(.nonactivatingPanel)
         }
-        panel.setFrame(NSRect(x: x, y: y, width: size.width, height: size.height), display: true)
     }
 
     private static func launchedAsLoginItem() -> Bool {
         let launchedAsLogin: AEKeyword = 0x6C676974 // 'lgit'
         guard let event = NSAppleEventManager.shared().currentAppleEvent else { return false }
         return event.attributeDescriptor(forKeyword: launchedAsLogin)?.booleanValue == true
-    }
-
-    /// Popover chrome uses `.popover` material (darker). Drop it so PinDockGlass
-    /// composites over the desktop like the standalone window.
-    private func matchPopoverGlass(hostingView: NSView) {
-        let appearance = NSApp.effectiveAppearance
-        hostingView.appearance = appearance
-        hostingView.wantsLayer = true
-        hostingView.layer?.backgroundColor = NSColor.clear.cgColor
-
-        guard let window = hostingView.window else { return }
-        window.isOpaque = false
-        window.backgroundColor = .clear
-        window.appearance = appearance
-
-        var ancestorIDs = Set<ObjectIdentifier>()
-        var ancestor = hostingView.superview
-        while let view = ancestor {
-            ancestorIDs.insert(ObjectIdentifier(view))
-            ancestor = view.superview
-        }
-
-        func walk(_ view: NSView) {
-            if view === hostingView { return }
-            if let effect = view as? NSVisualEffectView {
-                effect.material = .underWindowBackground
-                effect.blendingMode = .behindWindow
-                effect.isEmphasized = true
-                if ancestorIDs.contains(ObjectIdentifier(effect)) {
-                    // Parent of our content — hiding it would hide the panel.
-                    // Inactive chrome = no extra popover blur on top of PinDockGlass.
-                    effect.state = .inactive
-                } else {
-                    effect.isHidden = true
-                }
-            }
-            for sub in view.subviews where sub !== hostingView {
-                walk(sub)
-            }
-        }
-
-        if let root = window.contentView?.superview ?? window.contentView {
-            walk(root)
-        }
-
-        // Keep PinDockGlass looking like the foreground window even if we are not active.
-        func forceActive(_ view: NSView) {
-            if let effect = view as? NSVisualEffectView {
-                effect.state = .active
-                effect.isEmphasized = true
-            }
-            for sub in view.subviews { forceActive(sub) }
-        }
-        forceActive(hostingView)
     }
 
     private func installPopoverDismissMonitors() {
@@ -343,7 +265,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return event
         }
         popoverGlobalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-            DispatchQueue.main.async { self?.closeMenuBarPanel() }
+            DispatchQueue.main.async { self?.popover?.performClose(nil) }
         }
     }
 
@@ -359,13 +281,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func dismissPopoverIfClickOutside(_ event: NSEvent) {
-        guard menuBarPanel?.isVisible == true else { return }
-        if event.window === menuBarPanel { return }
+        guard popover?.isShown == true else { return }
+        if event.window === popover?.contentViewController?.view.window { return }
         if let button = statusItem?.button, event.window === button.window {
             let loc = button.convert(event.locationInWindow, from: nil)
             if button.bounds.contains(loc) { return }
         }
-        closeMenuBarPanel()
+        popover?.performClose(nil)
     }
 
     @objc private func openPanelAction() {
@@ -383,6 +305,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     @objc private func quitAction() {
         NSApp.terminate(nil)
+    }
+
+    // MARK: - NSPopoverDelegate
+
+    func popoverDidShow(_ notification: Notification) {
+        preparePopoverWindow()
+    }
+
+    func popoverDidClose(_ notification: Notification) {
+        removePopoverDismissMonitors()
     }
 
     // MARK: - Notifications
@@ -424,15 +356,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         if mode.showsMenuBar {
             if statusItem == nil { setupStatusItem() }
-            if menuBarPanel == nil { setupMenuBarPanel() }
+            if popover == nil { setupPopover() }
             updateStatusIcon()
         } else {
-            closeMenuBarPanel()
+            popover?.performClose(nil)
             if let item = statusItem {
                 NSStatusBar.system.removeStatusItem(item)
                 statusItem = nil
             }
-            menuBarPanel = nil
+            popover = nil
             hostingController = nil
         }
 
