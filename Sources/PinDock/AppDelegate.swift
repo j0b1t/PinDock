@@ -341,7 +341,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     private static let defaultWindowSize = NSSize(width: 920, height: 640)
-    private static let minWindowSize = NSSize(width: 640, height: 440)
+    private static let minWindowSize = NSSize(width: 560, height: 400)
 
     private func makeMainWindow() -> NSWindow {
         let hosting = NSHostingController(rootView: SettingsView(state: AppState.shared, compact: false))
@@ -350,7 +350,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: Self.defaultWindowSize),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
@@ -361,12 +361,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         window.backgroundColor = .clear
         window.isReleasedWhenClosed = false
         window.contentViewController = hosting
-        window.contentMinSize = NSSize(width: 640, height: 440)
+        window.contentMinSize = NSSize(width: 560, height: 400)
         window.setContentSize(Self.defaultWindowSize)
         window.delegate = self
         window.center()
-        // Autosave only after a valid default frame is applied, then reject tiny restores.
-        window.setFrameAutosaveName("PinDockMainWindow.v7")
+        window.setFrameAutosaveName("PinDockMainWindow.v8")
         ensureComfortableWindowFrame(window)
         return window
     }

@@ -49,22 +49,52 @@ struct MainWindowView: View {
     private var sidebarWidth: CGFloat { sidebarExpanded ? 200 : 56 }
 
     var body: some View {
-        VStack(spacing: 0) {
-            titleBar
-            HStack(alignment: .top, spacing: 10) {
-                sidebar
-                    .frame(width: sidebarWidth)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                detail
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            }
-            .padding(.horizontal, 10)
-            .padding(.bottom, 10)
-            .padding(.top, 4)
+        HStack(alignment: .top, spacing: 10) {
+            sidebar
+                .frame(width: sidebarWidth)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            detail
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
+        .padding(10)
         .background { windowGlass }
-        .frame(minWidth: 640, minHeight: 440)
+        .frame(minWidth: 560, minHeight: 400)
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                HStack(spacing: 8) {
+                    Button {
+                        sidebarExpanded.toggle()
+                    } label: {
+                        Image(systemName: "sidebar.leading")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
+
+                    Rectangle()
+                        .fill(Color.secondary.opacity(0.35))
+                        .frame(width: 1, height: 14)
+
+                    PinDockAppIcon(size: 20)
+                    Text("PinDock")
+                        .font(.system(size: 13, weight: .semibold))
+                }
+            }
+            ToolbarItem(placement: .automatic) {
+                PinDockStatusChip(state: state)
+            }
+        }
+        .background(
+            GeometryReader { geo in
+                Color.clear
+                    .onChange(of: geo.size.width) { width in
+                        if width < 680 {
+                            sidebarExpanded = false
+                        }
+                    }
+            }
+        )
         .id(state.appLanguage)
         .animation(.easeInOut(duration: 0.15), value: sidebarExpanded)
     }
@@ -77,37 +107,6 @@ struct MainWindowView: View {
                 .fill(Color.white.opacity(0.28))
                 .blendMode(.plusLighter)
         }
-    }
-
-    /// Traffic lights · collapse · | · app icon · PinDock ………… On/Off
-    private var titleBar: some View {
-        HStack(spacing: 8) {
-            Color.clear.frame(width: 68, height: 12)
-
-            Button {
-                sidebarExpanded.toggle()
-            } label: {
-                Image(systemName: "sidebar.leading")
-                    .font(.system(size: 13, weight: .medium))
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
-            .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
-
-            Rectangle()
-                .fill(Color.secondary.opacity(0.35))
-                .frame(width: 1, height: 14)
-
-            PinDockAppIcon(size: 24)
-            Text("PinDock")
-                .font(.system(size: 13, weight: .semibold))
-
-            Spacer(minLength: 8)
-
-            PinDockStatusChip(state: state)
-        }
-        .padding(.trailing, 14)
-        .padding(.vertical, 6)
     }
 
     private var sidebar: some View {
@@ -172,8 +171,7 @@ struct MainWindowView: View {
                 }
                 content()
             }
-            .padding(28)
-            .frame(maxWidth: 760, alignment: .leading)
+            .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(.ultraThinMaterial)
