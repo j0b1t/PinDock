@@ -70,8 +70,8 @@ struct MainWindowView: View {
                         sidebarExpanded.toggle()
                     } label: {
                         Image(systemName: "sidebar.leading")
-                            .font(.system(size: 15, weight: .medium))
-                            .frame(width: 22, height: 18)
+                            .font(.system(size: 13, weight: .medium))
+                            .frame(width: 18, height: 16)
                     }
                     .buttonStyle(.borderless)
                     .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
@@ -80,12 +80,12 @@ struct MainWindowView: View {
                         .fill(Color.primary.opacity(0.18))
                         .frame(width: 1, height: 18)
 
-                    PinDockAppIcon(size: 26)
+                    PinDockAppIcon(size: 22)
                     Text("PinDock")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.system(size: 13, weight: .semibold))
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
             }
             ToolbarItem(placement: .automatic) {
                 PinDockStatusChip(state: state)
@@ -174,23 +174,59 @@ struct MainWindowView: View {
         .background { PinDockGlass() }
     }
 
+    private func glassCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 0, content: content)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    private func windowRow<Trailing: View>(
+        _ title: String,
+        _ subtitle: String? = nil,
+        showDivider: Bool = true,
+        @ViewBuilder trailing: () -> Trailing
+    ) -> some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 13, weight: .medium))
+                    if let subtitle, !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                Spacer(minLength: 8)
+                trailing()
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            if showDivider {
+                Divider().padding(.leading, 14)
+            }
+        }
+    }
+
     // MARK: - General / enable
 
     private var generalPage: some View {
         page(title: L10n.t("pane.general"), subtitle: L10n.t("general.subtitle")) {
-            Form {
-                Section {
-                    Toggle(L10n.t("enable"), isOn: $state.isEnabled)
-                    LabeledContent(L10n.t("status")) {
-                        Text(state.statusLine)
-                            .foregroundStyle(.secondary)
-                    }
-                } footer: {
-                    Text(L10n.t("enable.hint"))
+            glassCard {
+                windowRow(L10n.t("enable"), L10n.t("enable.hint")) {
+                    Toggle("", isOn: $state.isEnabled)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                }
+                windowRow(L10n.t("status"), showDivider: false) {
+                    Text(state.statusLine)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
                 }
             }
-            .formStyle(.grouped)
-            .frame(maxWidth: .infinity)
         }
     }
 
@@ -270,26 +306,35 @@ struct MainWindowView: View {
 
     private var behaviorPage: some View {
         page(title: L10n.t("pane.behavior"), subtitle: L10n.t("behavior.subtitle")) {
-            Form {
-                Section {
-                    LabeledContent(L10n.t("moveBack")) {
-                        Text("⌘⇧D")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(.secondary)
-                    }
-                    Picker(L10n.t("modifier"), selection: $state.modifierKey) {
+            glassCard {
+                windowRow(L10n.t("moveBack"), L10n.t("moveBack.hint")) {
+                    Text("⌘⇧D")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                }
+                windowRow(L10n.t("modifier"), L10n.t("modifier.hint")) {
+                    Picker("", selection: $state.modifierKey) {
                         ForEach(ModifierKey.allCases) { key in
                             Text(key.localizedLabel).tag(key)
                         }
                     }
-                    Toggle(L10n.t("restoreWake"), isOn: $state.restoreOnWake)
-                    Toggle(L10n.t("launchLogin"), isOn: $state.launchAtLogin)
-                } footer: {
-                    Text(L10n.t("modifier.hint"))
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .frame(width: 128, alignment: .trailing)
+                }
+                windowRow(L10n.t("restoreWake"), L10n.t("restoreWake.hint")) {
+                    Toggle("", isOn: $state.restoreOnWake)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                }
+                windowRow(L10n.t("launchLogin"), L10n.t("launchLogin.hint"), showDivider: false) {
+                    Toggle("", isOn: $state.launchAtLogin)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
                 }
             }
-            .formStyle(.grouped)
-            .frame(maxWidth: .infinity)
         }
     }
 
@@ -297,29 +342,28 @@ struct MainWindowView: View {
 
     private var appearancePage: some View {
         page(title: L10n.t("pane.appearance"), subtitle: L10n.t("appearance.subtitle")) {
-            Form {
-                Section {
-                    Picker(L10n.t("showPinDock"), selection: $state.appPresentation) {
+            glassCard {
+                windowRow(L10n.t("showPinDock"), state.appPresentation.localizedSubtitle) {
+                    Picker("", selection: $state.appPresentation) {
                         Text(L10n.t("present.menuBar")).tag(AppPresentation.menuBar)
                         Text(L10n.t("present.window")).tag(AppPresentation.window)
                         Text(L10n.t("present.both")).tag(AppPresentation.both)
                     }
-                    .pickerStyle(.radioGroup)
-                } footer: {
-                    Text(state.appPresentation.localizedSubtitle)
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .frame(width: 128, alignment: .trailing)
                 }
-                Section {
-                    Picker(L10n.t("language"), selection: $state.appLanguage) {
+                windowRow(L10n.t("language"), L10n.t("language.hint"), showDivider: false) {
+                    Picker("", selection: $state.appLanguage) {
                         ForEach(AppLanguage.allCases) { lang in
                             Text(lang.displayName).tag(lang)
                         }
                     }
-                } footer: {
-                    Text(L10n.t("language.hint"))
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .frame(width: 128, alignment: .trailing)
                 }
             }
-            .formStyle(.grouped)
-            .frame(maxWidth: .infinity)
         }
     }
 
@@ -351,21 +395,17 @@ struct MainWindowView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
-            Form {
-                Section {
-                    LabeledContent(L10n.t("accessibility")) {
-                        if state.isTrusted {
-                            Label(L10n.t("active"), systemImage: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                        } else {
-                            Text(L10n.t("notGranted"))
-                                .foregroundStyle(.secondary)
-                        }
+            glassCard {
+                windowRow(L10n.t("accessibility"), state.isTrusted ? L10n.t("accessibility.granted") : L10n.t("accessibility.required"), showDivider: false) {
+                    if state.isTrusted {
+                        Label(L10n.t("active"), systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                    } else {
+                        Text(L10n.t("notGranted"))
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
-            .formStyle(.grouped)
-            .frame(maxWidth: .infinity)
         }
     }
 
@@ -404,31 +444,35 @@ struct MainWindowView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
-            Form {
-                Section {
-                    Toggle(L10n.t("autoCheck"), isOn: $state.autoCheckForUpdates)
-                    Toggle(L10n.t("autoInstall"), isOn: $state.autoInstallUpdates)
+            glassCard {
+                windowRow(L10n.t("autoCheck"), L10n.t("autoCheck.hint")) {
+                    Toggle("", isOn: $state.autoCheckForUpdates)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                }
+                windowRow(L10n.t("autoInstall"), state.autoCheckForUpdates ? L10n.t("autoInstall.hint") : L10n.t("autoInstall.needCheck")) {
+                    Toggle("", isOn: $state.autoInstallUpdates)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
                         .disabled(!state.autoCheckForUpdates)
-                    LabeledContent(L10n.t("status")) {
-                        if state.isCheckingUpdate || state.isInstallingUpdate {
-                            ProgressView().controlSize(.small)
-                        } else if state.updateAvailable {
+                }
+                windowRow(L10n.t("status"), L10n.t("updates.footer"), showDivider: false) {
+                    if state.isCheckingUpdate || state.isInstallingUpdate {
+                        ProgressView().controlSize(.small)
+                    } else if state.updateAvailable {
+                        Text(updateStatusLine)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        HStack(spacing: 8) {
                             Text(updateStatusLine)
                                 .foregroundStyle(.secondary)
-                        } else {
-                            HStack(spacing: 8) {
-                                Text(updateStatusLine)
-                                    .foregroundStyle(.secondary)
-                                Button(L10n.t("check")) { state.checkForUpdates(force: true) }
-                            }
+                            Button(L10n.t("check")) { state.checkForUpdates(force: true) }
                         }
                     }
-                } footer: {
-                    Text(L10n.t("updates.footer"))
                 }
             }
-            .formStyle(.grouped)
-            .frame(maxWidth: .infinity)
 
             if !state.updateErrorMessage.isEmpty {
                 Text(state.updateErrorMessage)
@@ -464,30 +508,21 @@ struct MainWindowView: View {
             }
             .padding(.bottom, 8)
 
-            Form {
-                Section {
-                    LabeledContent(L10n.t("lightning")) {
-                        Link("j0b1t@strike.me", destination: URL(string: "https://strike.me/j0b1t")!)
-                    }
-                    LabeledContent(L10n.t("kofi")) {
-                        Link("ko-fi.com/j0b1t", destination: URL(string: "https://ko-fi.com/j0b1t")!)
-                    }
-                } header: {
-                    Text(L10n.t("support"))
-                } footer: {
-                    Text(L10n.t("support.hint"))
+            glassCard {
+                windowRow(L10n.t("lightning")) {
+                    Link("j0b1t@strike.me", destination: URL(string: "https://strike.me/j0b1t")!)
                 }
-                Section {
-                    LabeledContent(L10n.t("license")) { Text("MIT") }
-                    LabeledContent(L10n.t("source")) {
-                        Link("github.com/j0b1t/PinDock", destination: URL(string: "https://github.com/j0b1t/PinDock")!)
-                    }
-                } header: {
-                    Text(L10n.t("license"))
+                windowRow(L10n.t("kofi"), L10n.t("support.hint")) {
+                    Link("ko-fi.com/j0b1t", destination: URL(string: "https://ko-fi.com/j0b1t")!)
+                }
+                windowRow(L10n.t("license")) {
+                    Text("MIT")
+                        .foregroundStyle(.secondary)
+                }
+                windowRow(L10n.t("source"), showDivider: false) {
+                    Link("github.com/j0b1t/PinDock", destination: URL(string: "https://github.com/j0b1t/PinDock")!)
                 }
             }
-            .formStyle(.grouped)
-            .frame(maxWidth: .infinity)
         }
     }
 }
