@@ -50,8 +50,8 @@ struct PinDockStatusChip: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.primary)
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 7)
         .help(state.statusLine)
     }
 }
@@ -86,5 +86,23 @@ struct GlassBackdrop: NSViewRepresentable {
 
     func updateNSView(_ view: NSVisualEffectView, context: Context) {
         view.material = material
+    }
+}
+
+/// Shared liquid-glass fill for window, title bar, and menu-bar panel.
+struct PinDockGlass: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        ZStack {
+            Rectangle().fill(.ultraThinMaterial)
+            Rectangle()
+                .fill(
+                    colorScheme == .dark
+                        ? Color.white.opacity(0.08)
+                        : Color.white.opacity(0.32)
+                )
+                .blendMode(.plusLighter)
+        }
     }
 }

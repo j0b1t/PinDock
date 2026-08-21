@@ -86,16 +86,7 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var glassBackground: some View {
-        ZStack {
-            Rectangle().fill(.ultraThinMaterial)
-            Rectangle()
-                .fill(
-                    colorScheme == .dark
-                        ? Color.white.opacity(0.04)
-                        : Color.white.opacity(0.35)
-                )
-                .blendMode(.plusLighter)
-        }
+        PinDockGlass()
     }
 
     // MARK: - Header
@@ -110,7 +101,7 @@ struct SettingsView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(.ultraThinMaterial.opacity(0.45))
+        .background { PinDockGlass() }
     }
 
     // MARK: - Banners

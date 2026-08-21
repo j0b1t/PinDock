@@ -356,7 +356,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         )
         window.title = "PinDock"
         window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = false
+        window.titlebarAppearsTransparent = true
         window.toolbarStyle = .unified
         window.isOpaque = false
         window.backgroundColor = .clear
@@ -366,7 +366,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         window.setContentSize(Self.defaultWindowSize)
         window.delegate = self
         window.center()
-        window.setFrameAutosaveName("PinDockMainWindow.v9")
+        window.setFrameAutosaveName("PinDockMainWindow.v10")
         ensureComfortableWindowFrame(window)
         return window
     }

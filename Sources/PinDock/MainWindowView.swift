@@ -81,14 +81,15 @@ struct MainWindowView: View {
                     Text("PinDock")
                         .font(.system(size: 15, weight: .semibold))
                 }
-                .padding(.vertical, 4)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
             }
             ToolbarItem(placement: .automatic) {
                 PinDockStatusChip(state: state)
             }
         }
         .toolbarBackground(.visible, for: .windowToolbar)
-        .toolbarBackground(.regularMaterial, for: .windowToolbar)
+        .toolbarBackground(.ultraThinMaterial, for: .windowToolbar)
         .background(
             GeometryReader { geo in
                 Color.clear
@@ -103,14 +104,8 @@ struct MainWindowView: View {
         .animation(.easeInOut(duration: 0.15), value: sidebarExpanded)
     }
 
-    /// Same glass as the menu-bar panel.
     private var windowGlass: some View {
-        ZStack {
-            Rectangle().fill(.ultraThinMaterial)
-            Rectangle()
-                .fill(Color.white.opacity(0.28))
-                .blendMode(.plusLighter)
-        }
+        PinDockGlass()
     }
 
     private var sidebar: some View {
