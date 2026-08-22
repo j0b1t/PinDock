@@ -76,6 +76,7 @@ struct SettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         // Menu-bar panel is often not the key window — keep glass/controls looking active.
         .environment(\.controlActiveState, .key)
+        .tint(Color.accentColor)
     }
 
     /// Maintainer: `PinDock --ui-preview-a11y` forces the Accessibility banner for screenshots.
@@ -595,7 +596,8 @@ struct DisplayAllowRow: View {
             ))
             .toggleStyle(.switch)
             .labelsHidden()
-            .controlSize(.mini)
+            .controlSize(.small)
+            .tint(Color.accentColor)
             .help(isAllowed ? "Allowed" : "Blocked")
 
             VStack(alignment: .leading, spacing: 2) {
@@ -630,10 +632,10 @@ struct DisplayAllowRow: View {
 
     private func pill(_ text: String, _ color: Color) -> some View {
         Text(text)
-            .font(.system(size: 8, weight: .semibold))
+            .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(.white)
-            .padding(.horizontal, 5)
-            .padding(.vertical, 1)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
             .background(color.opacity(0.9))
             .clipShape(Capsule())
     }
@@ -697,11 +699,11 @@ struct DisplayMapView: View {
                                     .padding(.horizontal, 4)
                                 if isCurrent {
                                     Text(L10n.t("dock"))
-                                        .font(.system(size: 8, weight: .semibold))
+                                        .font(.system(size: 10, weight: .semibold))
                                         .foregroundStyle(.white.opacity(0.9))
                                 } else if isDefault {
                                     Text(L10n.t("default"))
-                                        .font(.system(size: 8, weight: .semibold))
+                                        .font(.system(size: 10, weight: .semibold))
                                         .foregroundStyle(Color.accentColor)
                                 }
                             }
