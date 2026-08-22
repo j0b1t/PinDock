@@ -76,7 +76,7 @@ struct SettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         // Menu-bar panel is often not the key window — keep glass/controls looking active.
         .environment(\.controlActiveState, .key)
-        .tint(Color.accentColor)
+        .tint(PinDockColor.accent)
     }
 
     /// Maintainer: `PinDock --ui-preview-a11y` forces the Accessibility banner for screenshots.
@@ -597,7 +597,7 @@ struct DisplayAllowRow: View {
             .toggleStyle(.switch)
             .labelsHidden()
             .controlSize(.small)
-            .tint(Color.accentColor)
+            .tint(PinDockColor.accent)
             .help(isAllowed ? "Allowed" : "Blocked")
 
             VStack(alignment: .leading, spacing: 2) {
@@ -605,9 +605,9 @@ struct DisplayAllowRow: View {
                     Text(display.name)
                         .font(.system(size: 12, weight: .medium))
                         .lineLimit(1)
-                    if isDefault { pill(L10n.t("default"), Color.accentColor) }
-                    if isActualDock { pill(L10n.t("dock"), Color.orange) }
-                    if !isAllowed { pill(L10n.t("off"), Color.secondary) }
+                    if isDefault { pill(L10n.t("default"), PinDockColor.accent) }
+                    if isActualDock { pill(L10n.t("dock"), PinDockColor.dock) }
+                    if !isAllowed { pill(L10n.t("off"), Color(white: 0.55)) }
                 }
                 Text(display.isMain ? "\(L10n.t("main")) · \(sizeLabel)" : sizeLabel)
                     .font(.system(size: 10))
@@ -636,7 +636,7 @@ struct DisplayAllowRow: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background(color.opacity(0.9))
+            .background(color)
             .clipShape(Capsule())
     }
 
@@ -670,15 +670,15 @@ struct DisplayMapView: View {
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
                                 .fill(
                                     blocked ? Color.primary.opacity(0.05)
-                                    : isCurrent ? Color.orange.opacity(0.85)
-                                    : isDefault ? Color.accentColor.opacity(0.30)
+                                    : isCurrent ? PinDockColor.dock.opacity(0.85)
+                                    : isDefault ? PinDockColor.accent.opacity(0.30)
                                     : Color.primary.opacity(0.07)
                                 )
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
                                 .strokeBorder(
                                     blocked ? Color.secondary.opacity(0.3)
-                                    : isCurrent ? Color.orange
-                                    : isDefault ? Color.accentColor
+                                    : isCurrent ? PinDockColor.dock
+                                    : isDefault ? PinDockColor.accent
                                     : Color.primary.opacity(0.1),
                                     style: StrokeStyle(
                                         lineWidth: (isDefault || isCurrent) ? 1.5 : 1,
@@ -704,7 +704,7 @@ struct DisplayMapView: View {
                                 } else if isDefault {
                                     Text(L10n.t("default"))
                                         .font(.system(size: 10, weight: .semibold))
-                                        .foregroundStyle(Color.accentColor)
+                                        .foregroundStyle(PinDockColor.accent)
                                 }
                             }
                         }

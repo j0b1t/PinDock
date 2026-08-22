@@ -247,8 +247,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         window.appearance = NSApp.effectiveAppearance
         if let panel = window as? NSPanel {
             panel.hidesOnDeactivate = false
-            panel.becomesKeyOnlyIfNeeded = true
+            panel.becomesKeyOnlyIfNeeded = false
             panel.styleMask.insert(.nonactivatingPanel)
+            // Key window → switches draw blue. nonactivatingPanel → app stays behind.
+            panel.makeKey()
         }
     }
 

@@ -89,6 +89,13 @@ struct GlassBackdrop: NSViewRepresentable {
     }
 }
 
+/// Fixed RGB so pills and switches stay blue/orange when the window is not key.
+/// `Color.accentColor` turns gray in an inactive menu-bar popover.
+enum PinDockColor {
+    static let accent = Color(red: 0.0, green: 0.478, blue: 1.0)
+    static let dock = Color(red: 1.0, green: 0.584, blue: 0.0)
+}
+
 /// Shared liquid-glass fill for window, title bar, and menu-bar panel.
 struct PinDockGlass: View {
     @Environment(\.colorScheme) private var colorScheme
