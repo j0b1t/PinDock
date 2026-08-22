@@ -89,7 +89,6 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var glassBackground: some View {
-        // Popover chrome already blurs; a second ultraThin fill made the menu bar dark gray.
         PinDockGlass(fillMaterial: !compact)
     }
 
@@ -528,7 +527,7 @@ struct SettingsView: View {
             }
             .padding(.horizontal, 9)
             .padding(.vertical, 5)
-            .background(.ultraThinMaterial)
+            .background { PinDockCardFill() }
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -575,7 +574,7 @@ struct SettingsView: View {
 
     private var chipFill: some View {
         RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(.ultraThinMaterial)
+            .fill(colorScheme == .dark ? Color.white.opacity(0.07) : Color.white.opacity(0.22))
     }
 }
 

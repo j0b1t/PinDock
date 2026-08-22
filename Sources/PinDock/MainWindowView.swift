@@ -176,7 +176,7 @@ struct MainWindowView: View {
 
     private func glassCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         VStack(spacing: 0, content: content)
-            .background(.ultraThinMaterial)
+            .background { PinDockCardFill() }
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
@@ -252,7 +252,7 @@ struct MainWindowView: View {
                         .keyboardShortcut("d", modifiers: [.command, .shift])
                 }
                 .padding(14)
-                .background(.ultraThinMaterial)
+                .background { PinDockCardFill() }
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
@@ -270,7 +270,7 @@ struct MainWindowView: View {
                 }
                 .frame(height: 180)
                 .padding(12)
-                .background(.ultraThinMaterial)
+                .background { PinDockCardFill() }
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
@@ -296,7 +296,7 @@ struct MainWindowView: View {
                         }
                     }
                 }
-                .background(.ultraThinMaterial)
+                .background { PinDockCardFill() }
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
         }
@@ -391,7 +391,7 @@ struct MainWindowView: View {
                     Spacer()
                 }
                 .padding(16)
-                .background(.ultraThinMaterial)
+                .background { PinDockCardFill() }
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 
@@ -440,7 +440,7 @@ struct MainWindowView: View {
                     }
                 }
                 .padding(16)
-                .background(.ultraThinMaterial)
+                .background { PinDockCardFill() }
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
 

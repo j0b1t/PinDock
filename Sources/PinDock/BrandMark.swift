@@ -74,18 +74,22 @@ struct PinDockAppIcon: View {
 /// Desktop shows through — Apple-style translucent gray, not a flat fill.
 struct GlassBackdrop: NSViewRepresentable {
     var material: NSVisualEffectView.Material = .underWindowBackground
+    var emphasized: Bool = true
 
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
         view.material = material
         view.blendingMode = .behindWindow
-        view.state = .followsWindowActiveState
-        view.isEmphasized = true
+        view.state = .active
+        view.isEmphasized = emphasized
         return view
     }
 
     func updateNSView(_ view: NSVisualEffectView, context: Context) {
         view.material = material
+        view.isEmphasized = emphasized
+        view.state = .active
+        view.blendingMode = .behindWindow
     }
 }
 
@@ -97,23 +101,43 @@ enum PinDockColor {
 }
 
 /// Shared liquid-glass fill for window, title bar, and menu-bar panel.
+/// Light = the bright app glass. Dark = the charcoal menu-bar bubble.
 struct PinDockGlass: View {
     @Environment(\.colorScheme) private var colorScheme
-    /// Menu-bar popover already has a visual-effect bubble; only add the highlight.
+    /// Popover chrome already blurs; only draw the wash so we don’t stack two materials.
     var fillMaterial: Bool = true
 
     var body: some View {
         ZStack {
             if fillMaterial {
-                Rectangle().fill(.ultraThinMaterial)
+                if colorScheme == .dark {
+                    GlassBackdrop(material: .hudWindow, emphasized: false)
+                } else {
+                    Rectangle().fill(.ultraThinMaterial)
+                }
             }
-            Rectangle()
-                .fill(
-                    colorScheme == .dark
-                        ? Color.white.opacity(0.08)
-                        : Color.white.opacity(0.32)
-                )
-                .blendMode(.plusLighter)
+            if colorScheme == .dark {
+                Rectangle()
+                    .fill(Color.black.opacity(0.22))
+                    .blendMode(.plusDarker)
+                Rectangle()
+                    .fill(Color.white.opacity(0.05))
+                    .blendMode(.plusLighter)
+            } else {
+                Rectangle()
+                    .fill(Color.white.opacity(0.42))
+                    .blendMode(.plusLighter)
+            }
         }
+    }
+}
+
+/// Frosted cards on top of PinDockGlass.
+struct PinDockCardFill: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        Rectangle()
+            .fill(colorScheme == .dark ? Color.white.opacity(0.07) : Color.white.opacity(0.22))
     }
 }

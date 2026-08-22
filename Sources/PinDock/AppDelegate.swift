@@ -259,13 +259,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     private func matchPopoverChrome(hostingView: NSView, in window: NSWindow) {
+        let dark = window.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         func restyle(_ view: NSView) {
             if view === hostingView { return }
             if let effect = view as? NSVisualEffectView {
-                effect.material = .underWindowBackground
+                // Light: same behind-window glass as the app. Dark: the charcoal bubble.
+                effect.material = dark ? .hudWindow : .underWindowBackground
                 effect.blendingMode = .behindWindow
                 effect.state = .active
-                effect.isEmphasized = true
+                effect.isEmphasized = !dark
             }
             for sub in view.subviews where sub !== hostingView {
                 restyle(sub)
