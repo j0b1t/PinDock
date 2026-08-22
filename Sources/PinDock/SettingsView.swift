@@ -89,7 +89,8 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var glassBackground: some View {
-        PinDockGlass()
+        // Popover chrome already blurs; a second ultraThin fill made the menu bar dark gray.
+        PinDockGlass(fillMaterial: !compact)
     }
 
     // MARK: - Header

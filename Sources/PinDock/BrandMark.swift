@@ -99,10 +99,14 @@ enum PinDockColor {
 /// Shared liquid-glass fill for window, title bar, and menu-bar panel.
 struct PinDockGlass: View {
     @Environment(\.colorScheme) private var colorScheme
+    /// Menu-bar popover already has a visual-effect bubble; only add the highlight.
+    var fillMaterial: Bool = true
 
     var body: some View {
         ZStack {
-            Rectangle().fill(.ultraThinMaterial)
+            if fillMaterial {
+                Rectangle().fill(.ultraThinMaterial)
+            }
             Rectangle()
                 .fill(
                     colorScheme == .dark

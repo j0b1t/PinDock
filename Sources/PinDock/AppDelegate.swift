@@ -238,12 +238,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     /// Keep the system bubble + arrow. Don’t steal key/activation from the front app.
+    /// Restyle popover chrome to the same behind-window glass as the app (not the dark `.popover` material).
     private func preparePopoverWindow() {
         guard let view = popover?.contentViewController?.view else { return }
         view.appearance = NSApp.effectiveAppearance
         view.wantsLayer = true
         view.layer?.backgroundColor = NSColor.clear.cgColor
         guard let window = view.window else { return }
+        window.isOpaque = false
+        window.backgroundColor = .clear
         window.appearance = NSApp.effectiveAppearance
         if let panel = window as? NSPanel {
             panel.hidesOnDeactivate = false
@@ -251,6 +254,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             panel.styleMask.insert(.nonactivatingPanel)
             // Key window → switches draw blue. nonactivatingPanel → app stays behind.
             panel.makeKey()
+        }
+        matchPopoverChrome(hostingView: view, in: window)
+    }
+
+    private func matchPopoverChrome(hostingView: NSView, in window: NSWindow) {
+        func restyle(_ view: NSView) {
+            if view === hostingView { return }
+            if let effect = view as? NSVisualEffectView {
+                effect.material = .underWindowBackground
+                effect.blendingMode = .behindWindow
+                effect.state = .active
+                effect.isEmphasized = true
+            }
+            for sub in view.subviews where sub !== hostingView {
+                restyle(sub)
+            }
+        }
+        if let root = window.contentView?.superview ?? window.contentView {
+            restyle(root)
         }
     }
 
