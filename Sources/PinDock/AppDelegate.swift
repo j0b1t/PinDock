@@ -266,18 +266,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             ancestorIDs.insert(ObjectIdentifier(view))
             ancestor = view.superview
         }
+        let dark = window.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
 
         func restyle(_ view: NSView) {
             if view === hostingView { return }
             if let effect = view as? NSVisualEffectView {
                 effect.material = .hudWindow
                 effect.blendingMode = .behindWindow
+                effect.state = .active
                 effect.isEmphasized = false
                 if ancestorIDs.contains(ObjectIdentifier(effect)) {
-                    // Parent of our glass — stacking it made Light too bright / Dark too dark.
-                    effect.state = .inactive
-                } else {
-                    effect.state = .active
+                    installArrowWash(on: effect, dark: dark)
                 }
             }
             for sub in view.subviews where sub !== hostingView {
@@ -287,6 +286,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         if let root = window.contentView?.superview ?? window.contentView {
             restyle(root)
         }
+    }
+
+    /// Paint the HUD wash onto the bubble VE so the arrow tip matches the panel.
+    private func installArrowWash(on effect: NSVisualEffectView, dark: Bool) {
+        if let existing = effect.subviews.first(where: { $0.identifier == PinDockGlassWashView.identifier }) as? PinDockGlassWashView {
+            existing.isDark = dark
+            existing.frame = effect.bounds
+            return
+        }
+        let wash = PinDockGlassWashView()
+        wash.identifier = PinDockGlassWashView.identifier
+        wash.isDark = dark
+        wash.frame = effect.bounds
+        wash.autoresizingMask = [.width, .height]
+        effect.addSubview(wash, positioned: .below, relativeTo: effect.subviews.first)
     }
 
     private static func launchedAsLoginItem() -> Bool {

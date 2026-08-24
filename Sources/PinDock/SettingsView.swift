@@ -89,7 +89,7 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var glassBackground: some View {
-        PinDockGlass()
+        PinDockGlass(fillMaterial: !compact, applyWash: !compact)
     }
 
     // MARK: - Header

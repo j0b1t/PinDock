@@ -105,23 +105,26 @@ struct PinDockGlass: View {
     @Environment(\.colorScheme) private var colorScheme
     /// Popover chrome already blurs; only draw the wash so we don’t stack two materials.
     var fillMaterial: Bool = true
+    var applyWash: Bool = true
 
     var body: some View {
         ZStack {
             if fillMaterial {
                 GlassBackdrop(material: .hudWindow, emphasized: false)
             }
-            if colorScheme == .dark {
-                Rectangle()
-                    .fill(Color.black.opacity(0.10))
-                    .blendMode(.plusDarker)
-                Rectangle()
-                    .fill(Color.white.opacity(0.08))
-                    .blendMode(.plusLighter)
-            } else {
-                Rectangle()
-                    .fill(Color.black.opacity(0.10))
-                    .blendMode(.plusDarker)
+            if applyWash {
+                if colorScheme == .dark {
+                    Rectangle()
+                        .fill(Color.black.opacity(0.10))
+                        .blendMode(.plusDarker)
+                    Rectangle()
+                        .fill(Color.white.opacity(0.08))
+                        .blendMode(.plusLighter)
+                } else {
+                    Rectangle()
+                        .fill(Color.black.opacity(0.10))
+                        .blendMode(.plusDarker)
+                }
             }
         }
     }
@@ -134,5 +137,28 @@ struct PinDockCardFill: View {
     var body: some View {
         Rectangle()
             .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.08))
+    }
+}
+
+/// Same plus-darker / plus-lighter wash as PinDockGlass, for the popover bubble + arrow.
+final class PinDockGlassWashView: NSView {
+    static let identifier = NSUserInterfaceItemIdentifier("PinDockGlassWash")
+
+    var isDark: Bool = false {
+        didSet { needsDisplay = true }
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    override func draw(_ dirtyRect: NSRect) {
+        if isDark {
+            NSColor.black.withAlphaComponent(0.10).setFill()
+            bounds.fill(using: .plusDarker)
+            NSColor.white.withAlphaComponent(0.08).setFill()
+            bounds.fill(using: .plusLighter)
+        } else {
+            NSColor.black.withAlphaComponent(0.10).setFill()
+            bounds.fill(using: .plusDarker)
+        }
     }
 }
