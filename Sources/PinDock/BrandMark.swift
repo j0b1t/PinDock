@@ -37,26 +37,6 @@ struct PinDockMark: View {
     }()
 }
 
-/// Translucent raised pill — sidebar selection, title chip, On/Off status.
-struct PinDockGlassChip: View {
-    @Environment(\.colorScheme) private var colorScheme
-    var cornerRadius: CGFloat = 8
-
-    var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-            .fill(.ultraThinMaterial)
-            .overlay {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.06))
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.10), lineWidth: 0.5)
-            }
-            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.28 : 0.08), radius: 5, y: 1)
-    }
-}
-
 /// Menu-bar / window status chip: green/grey dot + On/Off.
 struct PinDockStatusChip: View {
     @ObservedObject var state: AppState
@@ -72,7 +52,6 @@ struct PinDockStatusChip: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 7)
-        .background { PinDockGlassChip() }
         .help(state.statusLine)
     }
 }
