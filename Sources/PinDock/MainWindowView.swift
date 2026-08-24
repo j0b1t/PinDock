@@ -4,6 +4,7 @@ import AppKit
 /// Standalone app window — Settings.app style (sidebar + detail), not the menu-bar popover.
 struct MainWindowView: View {
     @ObservedObject var state: AppState
+    @Environment(\.colorScheme) private var colorScheme
     @State private var pane: WindowPane = .general
 
     enum WindowPane: String, CaseIterable, Identifiable, Hashable {
@@ -107,39 +108,62 @@ struct MainWindowView: View {
     }
 
     private var sidebar: some View {
-        List(selection: $pane) {
+        VStack(spacing: 3) {
             ForEach(WindowPane.allCases) { item in
+                sidebarRow(item)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(6)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background { PinDockGlass() }
+    }
+
+    private func sidebarRow(_ item: WindowPane) -> some View {
+        let selected = pane == item
+        return Button {
+            pane = item
+        } label: {
+            HStack(spacing: 8) {
                 Group {
-                    if sidebarExpanded {
-                        Label {
-                            Text(item.title)
-                        } icon: {
-                            if item == .general {
-                                PinDockMark(size: 15)
-                            } else {
-                                Image(systemName: item.symbol)
-                            }
-                        }
+                    if item == .general {
+                        PinDockMark(size: sidebarExpanded ? 15 : 16)
                     } else {
-                        Group {
-                            if item == .general {
-                                PinDockMark(size: 16)
-                            } else {
-                                Image(systemName: item.symbol)
-                                    .font(.system(size: 14, weight: .medium))
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
+                        Image(systemName: item.symbol)
+                            .font(.system(size: sidebarExpanded ? 13 : 14, weight: .medium))
+                            .frame(width: sidebarExpanded ? 15 : 16, height: sidebarExpanded ? 15 : 16)
                     }
                 }
-                .tag(item)
-                .help(item.title)
+                if sidebarExpanded {
+                    Text(item.title)
+                        .font(.system(size: 13, weight: selected ? .semibold : .regular))
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
+                }
+            }
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity, alignment: sidebarExpanded ? .leading : .center)
+            .padding(.horizontal, sidebarExpanded ? 10 : 6)
+            .padding(.vertical, 7)
+            .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .background {
+            if selected {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.06))
+                    }
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .strokeBorder(Color.primary.opacity(0.10), lineWidth: 0.5)
+                    }
+                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.28 : 0.08), radius: 5, y: 1)
             }
         }
-        .listStyle(.sidebar)
-        .scrollContentBackground(.hidden)
-        .listRowSeparator(.hidden)
-        .background { PinDockGlass() }
+        .help(item.title)
     }
 
     @ViewBuilder
