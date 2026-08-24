@@ -83,7 +83,7 @@ struct MainWindowView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background { PinDockGlassChip() }
+                    .background { PinDockGlassChip(flush: true) }
                 }
             }
             ToolbarItem(placement: .automatic) {

@@ -41,19 +41,26 @@ struct PinDockMark: View {
 struct PinDockGlassChip: View {
     @Environment(\.colorScheme) private var colorScheme
     var cornerRadius: CGFloat = 8
+    /// Toolbar sits on window glass already — skip extra material and shadow.
+    var flush: Bool = false
 
     var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-            .fill(.ultraThinMaterial)
-            .overlay {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.06))
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        let tint = Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.06)
+        ZStack {
+            if flush {
+                shape.fill(tint)
+            } else {
+                shape.fill(.ultraThinMaterial)
+                shape.fill(tint)
             }
-            .overlay {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.10), lineWidth: 0.5)
-            }
-            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.28 : 0.08), radius: 5, y: 1)
+            shape.strokeBorder(Color.primary.opacity(0.10), lineWidth: 0.5)
+        }
+        .shadow(
+            color: flush ? .clear : Color.black.opacity(colorScheme == .dark ? 0.28 : 0.08),
+            radius: flush ? 0 : 5,
+            y: flush ? 0 : 1
+        )
     }
 }
 
@@ -71,9 +78,9 @@ struct PinDockStatusChip: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.primary)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 7)
-        .background { if elevated { PinDockGlassChip() } }
+        .padding(.horizontal, elevated ? 12 : 14)
+        .padding(.vertical, elevated ? 6 : 7)
+        .background { if elevated { PinDockGlassChip(flush: true) } }
         .help(state.statusLine)
     }
 }
