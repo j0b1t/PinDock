@@ -81,9 +81,9 @@ struct MainWindowView: View {
                         Text("PinDock")
                             .font(.system(size: 13, weight: .semibold))
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background { PinDockGlassChip(flush: true) }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background { PinDockGlassChip() }
                 }
             }
             ToolbarItem(placement: .automatic) {
