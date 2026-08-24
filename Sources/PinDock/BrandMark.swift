@@ -37,26 +37,9 @@ struct PinDockMark: View {
     }()
 }
 
-/// Same raised fill as the selected sidebar item.
-struct PinDockGlassChip: View {
-    @Environment(\.colorScheme) private var colorScheme
-    var cornerRadius: CGFloat = 8
-
-    var body: some View {
-        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-        ZStack {
-            shape.fill(.ultraThinMaterial)
-            shape.fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.06))
-            shape.strokeBorder(Color.primary.opacity(0.10), lineWidth: 0.5)
-        }
-        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.28 : 0.08), radius: 5, y: 1)
-    }
-}
-
 /// Menu-bar / window status chip: green/grey dot + On/Off.
 struct PinDockStatusChip: View {
     @ObservedObject var state: AppState
-    var elevated: Bool = false
 
     var body: some View {
         HStack(spacing: 8) {
@@ -69,7 +52,6 @@ struct PinDockStatusChip: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 7)
-        .background { if elevated { PinDockGlassChip() } }
         .help(state.statusLine)
     }
 }
