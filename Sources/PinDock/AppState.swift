@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import AppKit
+import CoreGraphics
 
 final class AppState: ObservableObject {
     static let shared = AppState()
@@ -79,6 +80,9 @@ final class AppState: ObservableObject {
     @Published private(set) var isRunning: Bool = false
     @Published private(set) var statusLine: String = ""
     @Published private(set) var dockIsAway: Bool = false
+    /// Stop retrying Move Back after a blocked display if relocate keeps failing
+    /// (each try warps the cursor and looks like the mouse is spinning).
+    private var autoEjectFailCount = 0
 
     // Updates (GitHub Releases, optional network)
     @Published var autoCheckForUpdates: Bool {
@@ -183,11 +187,15 @@ final class AppState: ObservableObject {
             if !blockedDisplayIDs.isEmpty, blockedDisplayIDs.contains(id) {
                 let now = CFAbsoluteTimeGetCurrent()
                 // Debounce; only eject from displays the user explicitly blocked.
-                if now - lastAutoEjectAt > 2.0 {
+                // Cap retries — a failed relocate must not warp the mouse forever.
+                if autoEjectFailCount < 2, now - lastAutoEjectAt > 2.0 {
                     lastAutoEjectAt = now
-                    NSLog("PinDock: Dock on blocked display \(id) — Move Back to default")
+                    autoEjectFailCount += 1
+                    NSLog("PinDock: Dock on blocked display \(id) — Move Back to default (try \(autoEjectFailCount))")
                     moveBackToDefault()
                 }
+            } else {
+                autoEjectFailCount = 0
             }
         } else {
             actualDockDisplayID = PinDockEngine.shared.actualDockDisplayID
@@ -394,6 +402,9 @@ final class AppState: ObservableObject {
         }
         blockedDisplayIDs = set
         Preferences.shared.blockedDisplayIDs = set
+        autoEjectFailCount = 0
+        DisplayManager.shared.refresh()
+        CGAssociateMouseAndMouseCursorPosition(1)
 
         if !allowed {
             let host = displayHostingDock

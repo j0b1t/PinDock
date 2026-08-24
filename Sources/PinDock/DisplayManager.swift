@@ -79,32 +79,16 @@ final class DisplayManager {
     }
 
     /// Hit-test using Quartz coordinates (CGEvent.location / CGWarpMouseCursorPosition).
+    /// Only returns a display the point actually sits on — never the nearest neighbour.
+    /// (Nearest-display fallback mapped “dead” space after unplug/block onto another
+    /// screen’s bottom edge and made the pointer bounce.)
     func displayContaining(quartzPoint point: CGPoint) -> DisplayInfo? {
         for display in displays {
-            // Inset slightly so edge points still hit.
             if display.quartzFrame.insetBy(dx: -2, dy: -2).contains(point) {
                 return display
             }
         }
-        var best: DisplayInfo?
-        var bestDistance = CGFloat.greatestFiniteMagnitude
-        for display in displays {
-            let f = display.quartzFrame
-            let dx: CGFloat
-            if point.x < f.minX { dx = f.minX - point.x }
-            else if point.x > f.maxX { dx = point.x - f.maxX }
-            else { dx = 0 }
-            let dy: CGFloat
-            if point.y < f.minY { dy = f.minY - point.y }
-            else if point.y > f.maxY { dy = point.y - f.maxY }
-            else { dy = 0 }
-            let d = dx * dx + dy * dy
-            if d < bestDistance {
-                bestDistance = d
-                best = display
-            }
-        }
-        return best
+        return nil
     }
 
     /// Resolve a preferred display ID using an optional stable fingerprint first.

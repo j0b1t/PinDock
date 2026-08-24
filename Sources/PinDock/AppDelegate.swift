@@ -547,6 +547,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 
             AppState.shared.refresh()
             self.updateStatusIcon()
+            let pointer = DisplayManager.currentPointerQuartz()
+            let clamped = DisplayManager.shared.clampQuartzToVisible(pointer)
+            if hypot(clamped.x - pointer.x, clamped.y - pointer.y) > 2 {
+                CGWarpMouseCursorPosition(clamped)
+            }
+            CGAssociateMouseAndMouseCursorPosition(1)
 
             guard topologyChanged,
                   Preferences.shared.isEnabled,

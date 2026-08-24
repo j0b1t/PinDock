@@ -94,6 +94,7 @@ final class PinDockEngine {
         }
         CGEvent.tapEnable(tap: tap, enable: true)
         isRunning = true
+        CGAssociateMouseAndMouseCursorPosition(1)
         installMoveBackHotkey()
         refreshActualDockLocation()
         onStateChanged?()
@@ -248,7 +249,8 @@ final class PinDockEngine {
         let safeY = frame.maxY - zone - 1
         let loc = event.location
         guard loc.y > safeY else { return Unmanaged.passUnretained(event) }
-        event.location = CGPoint(x: loc.x, y: safeY)
+        let x = min(max(loc.x, frame.minX + 1), frame.maxX - 1)
+        event.location = CGPoint(x: x, y: safeY)
         return Unmanaged.passUnretained(event)
     }
 
@@ -344,6 +346,7 @@ final class PinDockEngine {
         defer {
             suppressProtection = false
             relocateInFlight = false
+            CGAssociateMouseAndMouseCursorPosition(1)
             if isRunning, let tap = eventTap {
                 CGEvent.tapEnable(tap: tap, enable: true)
             }
@@ -374,8 +377,9 @@ final class PinDockEngine {
             success = hitDockEdge(screen: screen, displayID: displayID, orientation: orientation, dwell: 0.40)
         }
 
-        // Restore cursor — never leave it parked on the edge.
-        setCursor(saved)
+        // Restore cursor — never leave it parked on the edge or on a gone display.
+        setCursor(DisplayManager.shared.clampQuartzToVisible(saved))
+        CGAssociateMouseAndMouseCursorPosition(1)
         spin(0.02)
 
         if let info = DisplayManager.shared.display(id: displayID) {
@@ -502,9 +506,12 @@ final class PinDockEngine {
     }
 
     private func setCursor(_ quartzPoint: CGPoint) {
-        // Keep association on — dock reacts more reliably to a “real” cursor.
-        CGWarpMouseCursorPosition(quartzPoint)
-        postMouseMoved(quartzPoint)
+        let point = DisplayManager.shared.clampQuartzToVisible(quartzPoint)
+        CGWarpMouseCursorPosition(point)
+        // Warp disconnects mouse from cursor; without this the pointer “spins”
+        // or ignores the physical mouse until a click.
+        CGAssociateMouseAndMouseCursorPosition(1)
+        postMouseMoved(point)
     }
 
     private func postMouseMoved(_ quartzPoint: CGPoint) {
