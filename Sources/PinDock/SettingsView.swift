@@ -76,7 +76,6 @@ struct SettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         // Menu-bar panel is often not the key window — keep glass/controls looking active.
         .environment(\.controlActiveState, .key)
-        .tint(PinDockColor.accent)
     }
 
     /// Maintainer: `PinDock --ui-preview-a11y` forces the Accessibility banner for screenshots.
@@ -134,11 +133,9 @@ struct SettingsView: View {
                             Button(L10n.t("install")) { state.installAvailableUpdate() }
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.regular)
-                                .font(.system(size: 12, weight: .medium))
                         }
                         Button(L10n.t("view")) { state.openReleasePage() }
                             .controlSize(.regular)
-                            .font(.system(size: 12, weight: .medium))
                     }
                 }
             }
@@ -197,10 +194,8 @@ struct SettingsView: View {
                 Button(L10n.t("grant")) { state.openAccessibility() }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.regular)
-                    .font(.system(size: 12, weight: .medium))
                 Button(L10n.t("retry")) { state.retryEngine() }
                     .controlSize(.regular)
-                    .font(.system(size: 12, weight: .medium))
             }
         }
         .padding(10)
@@ -254,6 +249,7 @@ struct SettingsView: View {
                     .toggleStyle(.switch)
                     .labelsHidden()
                     .controlSize(.small)
+                    .tint(PinDockColor.accent)
             }
             .background(chipFill)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -386,6 +382,7 @@ struct SettingsView: View {
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .controlSize(.small)
+                        .tint(PinDockColor.accent)
                 }
                 Divider().padding(.leading, 12)
                 settingsRow(L10n.t("launchLogin"), L10n.t("launchLogin.hint")) {
@@ -393,6 +390,7 @@ struct SettingsView: View {
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .controlSize(.small)
+                        .tint(PinDockColor.accent)
                 }
             }
             .background(chipFill)
@@ -420,10 +418,8 @@ struct SettingsView: View {
                             Button(L10n.t("grant")) { state.openAccessibility() }
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.regular)
-                                .font(.system(size: 12, weight: .medium))
                             Button(L10n.t("retry")) { state.retryEngine() }
                                 .controlSize(.regular)
-                                .font(.system(size: 12, weight: .medium))
                         }
                     }
                 }
@@ -444,6 +440,7 @@ struct SettingsView: View {
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .controlSize(.small)
+                        .tint(PinDockColor.accent)
                 }
                 Divider().padding(.leading, 12)
                 settingsRow(
@@ -456,6 +453,7 @@ struct SettingsView: View {
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .controlSize(.small)
+                        .tint(PinDockColor.accent)
                         .disabled(!state.autoCheckForUpdates)
                 }
                 Divider().padding(.leading, 12)
@@ -468,16 +466,13 @@ struct SettingsView: View {
                                 Button(L10n.t("install")) { state.installAvailableUpdate() }
                                     .buttonStyle(.borderedProminent)
                                     .controlSize(.regular)
-                                    .font(.system(size: 12, weight: .medium))
                             }
                             Button(L10n.t("view")) { state.openReleasePage() }
                                 .controlSize(.regular)
-                                .font(.system(size: 12, weight: .medium))
                         }
                     } else {
                         Button(L10n.t("check")) { state.checkForUpdates(force: true) }
                             .controlSize(.regular)
-                            .font(.system(size: 12, weight: .medium))
                     }
                 }
             }
