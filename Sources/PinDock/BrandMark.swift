@@ -101,7 +101,7 @@ enum PinDockColor {
 }
 
 /// Shared liquid-glass fill for window, title bar, and menu-bar panel.
-/// Light = the bright app glass. Dark = the charcoal menu-bar bubble.
+/// Light = original pre-theme glass (ultra-thin + 32% white). Dark = charcoal bubble.
 struct PinDockGlass: View {
     @Environment(\.colorScheme) private var colorScheme
     /// Popover chrome already blurs; only draw the wash so we don’t stack two materials.
@@ -125,7 +125,7 @@ struct PinDockGlass: View {
                     .blendMode(.plusLighter)
             } else {
                 Rectangle()
-                    .fill(Color.white.opacity(0.42))
+                    .fill(Color.white.opacity(0.32))
                     .blendMode(.plusLighter)
             }
         }
@@ -137,7 +137,12 @@ struct PinDockCardFill: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        Rectangle()
-            .fill(colorScheme == .dark ? Color.white.opacity(0.07) : Color.white.opacity(0.22))
+        Group {
+            if colorScheme == .dark {
+                Rectangle().fill(Color.white.opacity(0.07))
+            } else {
+                Rectangle().fill(.ultraThinMaterial)
+            }
+        }
     }
 }

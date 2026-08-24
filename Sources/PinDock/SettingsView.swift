@@ -585,7 +585,7 @@ struct SettingsView: View {
 
     private var chipFill: some View {
         RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(colorScheme == .dark ? Color.white.opacity(0.07) : Color.white.opacity(0.22))
+            .fill(colorScheme == .dark ? AnyShapeStyle(Color.white.opacity(0.07)) : AnyShapeStyle(.ultraThinMaterial))
     }
 }
 
