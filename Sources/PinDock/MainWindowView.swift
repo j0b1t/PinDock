@@ -4,7 +4,6 @@ import AppKit
 /// Standalone app window — Settings.app style (sidebar + detail), not the menu-bar popover.
 struct MainWindowView: View {
     @ObservedObject var state: AppState
-    @Environment(\.colorScheme) private var colorScheme
     @State private var pane: WindowPane = .general
 
     enum WindowPane: String, CaseIterable, Identifiable, Hashable {
@@ -81,12 +80,15 @@ struct MainWindowView: View {
                         .fill(Color.primary.opacity(0.18))
                         .frame(width: 1, height: 18)
 
-                    PinDockAppIcon(size: 22)
-                    Text("PinDock")
-                        .font(.system(size: 13, weight: .semibold))
+                    HStack(spacing: 8) {
+                        PinDockAppIcon(size: 22)
+                        Text("PinDock")
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background { PinDockGlassChip() }
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
             }
             ToolbarItem(placement: .automatic) {
                 PinDockStatusChip(state: state)
@@ -150,17 +152,7 @@ struct MainWindowView: View {
         .buttonStyle(.plain)
         .background {
             if selected {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.06))
-                    }
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .strokeBorder(Color.primary.opacity(0.10), lineWidth: 0.5)
-                    }
-                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.28 : 0.08), radius: 5, y: 1)
+                PinDockGlassChip()
             }
         }
         .help(item.title)
