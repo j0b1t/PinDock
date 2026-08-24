@@ -266,17 +266,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             ancestorIDs.insert(ObjectIdentifier(view))
             ancestor = view.superview
         }
-        let dark = window.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
 
         func restyle(_ view: NSView) {
             if view === hostingView { return }
             if let effect = view as? NSVisualEffectView {
                 effect.material = .hudWindow
                 effect.blendingMode = .behindWindow
-                effect.state = .active
                 effect.isEmphasized = false
                 if ancestorIDs.contains(ObjectIdentifier(effect)) {
-                    installArrowWash(on: effect, dark: dark)
+                    // Don’t stack chrome on PinDockGlass — that made Light too bright / Dark too dark.
+                    effect.state = .inactive
+                    installMatchingArrow(on: effect, hostingView: hostingView)
+                } else {
+                    effect.state = .active
                 }
             }
             for sub in view.subviews where sub !== hostingView {
@@ -288,19 +290,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         }
     }
 
-    /// Paint the HUD wash onto the bubble VE so the arrow tip matches the panel.
-    private func installArrowWash(on effect: NSVisualEffectView, dark: Bool) {
-        if let existing = effect.subviews.first(where: { $0.identifier == PinDockGlassWashView.identifier }) as? PinDockGlassWashView {
-            existing.isDark = dark
-            existing.frame = effect.bounds
+    private static let arrowFillID = NSUserInterfaceItemIdentifier("PinDockArrowFill")
+
+    /// Fill the system arrow with PinDockGlass so the tip matches the panel.
+    private func installMatchingArrow(on effect: NSVisualEffectView, hostingView: NSView) {
+        effect.layoutSubtreeIfNeeded()
+        let hostFrame = hostingView.convert(hostingView.bounds, to: effect)
+        let above = effect.bounds.maxY - hostFrame.maxY
+        guard above > 3 else {
+            effect.subviews.first { $0.identifier == Self.arrowFillID }?.removeFromSuperview()
             return
         }
-        let wash = PinDockGlassWashView()
-        wash.identifier = PinDockGlassWashView.identifier
-        wash.isDark = dark
-        wash.frame = effect.bounds
-        wash.autoresizingMask = [.width, .height]
-        effect.addSubview(wash, positioned: .below, relativeTo: effect.subviews.first)
+        let height = above
+        let width = max(height * 2.15, 18)
+        let frame = NSRect(
+            x: hostFrame.midX - width / 2,
+            y: hostFrame.maxY,
+            width: width,
+            height: height
+        )
+
+        if let existing = effect.subviews.first(where: { $0.identifier == Self.arrowFillID }) {
+            existing.frame = frame
+            existing.appearance = NSApp.effectiveAppearance
+            return
+        }
+
+        let arrow = NSHostingView(rootView: PinDockPopoverArrow())
+        arrow.identifier = Self.arrowFillID
+        arrow.frame = frame
+        arrow.appearance = NSApp.effectiveAppearance
+        effect.addSubview(arrow)
     }
 
     private static func launchedAsLoginItem() -> Bool {

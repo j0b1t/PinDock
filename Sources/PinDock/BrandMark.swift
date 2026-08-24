@@ -140,25 +140,21 @@ struct PinDockCardFill: View {
     }
 }
 
-/// Same plus-darker / plus-lighter wash as PinDockGlass, for the popover bubble + arrow.
-final class PinDockGlassWashView: NSView {
-    static let identifier = NSUserInterfaceItemIdentifier("PinDockGlassWash")
-
-    var isDark: Bool = false {
-        didSet { needsDisplay = true }
+/// Triangle that fills the NSPopover arrow using the same PinDockGlass as the panel.
+struct PinDockPopoverArrow: View {
+    var body: some View {
+        PinDockGlass()
+            .mask(PopoverArrowShape())
     }
+}
 
-    override func hitTest(_ point: NSPoint) -> NSView? { nil }
-
-    override func draw(_ dirtyRect: NSRect) {
-        if isDark {
-            NSColor.black.withAlphaComponent(0.10).setFill()
-            bounds.fill(using: .plusDarker)
-            NSColor.white.withAlphaComponent(0.08).setFill()
-            bounds.fill(using: .plusLighter)
-        } else {
-            NSColor.black.withAlphaComponent(0.10).setFill()
-            bounds.fill(using: .plusDarker)
-        }
+private struct PopoverArrowShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: 0))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: 0, y: rect.maxY))
+        path.closeSubpath()
+        return path
     }
 }
