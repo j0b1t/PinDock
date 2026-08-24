@@ -34,6 +34,29 @@ enum AppPresentation: String, CaseIterable, Hashable, Identifiable {
     }
 }
 
+/// In-app light / dark, independent of (or following) macOS.
+enum AppColorScheme: String, CaseIterable, Hashable, Identifiable {
+    var id: String { rawValue }
+
+    case system
+    case light
+    case dark
+
+    var localizedLabel: String { L10n.t("theme.\(rawValue)") }
+
+    var nsAppearance: NSAppearance? {
+        switch self {
+        case .system: return nil
+        case .light: return NSAppearance(named: .aqua)
+        case .dark: return NSAppearance(named: .darkAqua)
+        }
+    }
+
+    func apply() {
+        NSApp.appearance = nsAppearance
+    }
+}
+
 enum ModifierKey: String, CaseIterable, Hashable, Identifiable {
     var id: String { rawValue }
 
@@ -66,6 +89,7 @@ enum ModifierKey: String, CaseIterable, Hashable, Identifiable {
 
 extension Notification.Name {
     static let pindockPresentationDidChange = Notification.Name("pindockPresentationDidChange")
+    static let pindockColorSchemeDidChange = Notification.Name("pindockColorSchemeDidChange")
 }
 
 final class Preferences {
@@ -92,6 +116,7 @@ final class Preferences {
         static let autoInstallUpdates = "autoInstallUpdates"
         static let appPresentation = "appPresentation"
         static let appLanguage = "appLanguage"
+        static let appColorScheme = "appColorScheme"
         // Legacy key migration
         static let legacyAnchor = "anchorDisplayID"
     }
@@ -228,6 +253,15 @@ final class Preferences {
             return AppLanguage(rawValue: raw) ?? .system
         }
         set { defaults.set(newValue.rawValue, forKey: Keys.appLanguage) }
+    }
+
+    /// Light / dark / system. Default: follow macOS.
+    var appColorScheme: AppColorScheme {
+        get {
+            let raw = defaults.string(forKey: Keys.appColorScheme) ?? AppColorScheme.system.rawValue
+            return AppColorScheme(rawValue: raw) ?? .system
+        }
+        set { defaults.set(newValue.rawValue, forKey: Keys.appColorScheme) }
     }
 
     var triggerZonePixels: CGFloat {

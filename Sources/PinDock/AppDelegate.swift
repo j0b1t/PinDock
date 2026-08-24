@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     private var knownDisplayIDs: Set<UInt32> = []
 
     func applicationWillFinishLaunching(_ notification: Notification) {
+        Preferences.shared.appColorScheme.apply()
         applyActivationPolicy(Preferences.shared.appPresentation)
     }
 
@@ -259,15 +260,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     private func matchPopoverChrome(hostingView: NSView, in window: NSWindow) {
-        let dark = window.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         func restyle(_ view: NSView) {
             if view === hostingView { return }
             if let effect = view as? NSVisualEffectView {
-                // Light: same behind-window glass as the app. Dark: the charcoal bubble.
-                effect.material = dark ? .hudWindow : .underWindowBackground
+                effect.material = .underWindowBackground
                 effect.blendingMode = .behindWindow
                 effect.state = .active
-                effect.isEmphasized = !dark
+                effect.isEmphasized = true
             }
             for sub in view.subviews where sub !== hostingView {
                 restyle(sub)
@@ -364,6 +363,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             name: .pindockPresentationDidChange,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(onColorSchemeChange),
+            name: .pindockColorSchemeDidChange,
+            object: nil
+        )
+    }
+
+    @objc private func onColorSchemeChange() {
+        let appearance = NSApp.effectiveAppearance
+        popover?.appearance = appearance
+        if popover?.isShown == true {
+            preparePopoverWindow()
+        }
+        mainWindow?.appearance = NSApp.appearance
     }
 
     @objc private func onPresentationChange(_ notification: Notification) {

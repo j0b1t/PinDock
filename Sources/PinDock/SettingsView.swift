@@ -331,6 +331,17 @@ struct SettingsView: View {
                     .fixedSize()
                 }
                 Divider().padding(.leading, 12)
+                settingsRow(L10n.t("theme"), L10n.t("theme.hint")) {
+                    Picker("", selection: $state.appColorScheme) {
+                        ForEach(AppColorScheme.allCases) { scheme in
+                            Text(scheme.localizedLabel).tag(scheme)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .fixedSize()
+                }
+                Divider().padding(.leading, 12)
                 settingsRow(L10n.t("language"), L10n.t("language.hint")) {
                     Picker("", selection: $state.appLanguage) {
                         ForEach(AppLanguage.allCases) { lang in
@@ -574,7 +585,7 @@ struct SettingsView: View {
 
     private var chipFill: some View {
         RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(colorScheme == .dark ? Color.white.opacity(0.07) : Color.white.opacity(0.22))
+            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.20))
     }
 }
 

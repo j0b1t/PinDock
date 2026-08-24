@@ -353,6 +353,16 @@ struct MainWindowView: View {
                     .labelsHidden()
                     .fixedSize()
                 }
+                windowRow(L10n.t("theme"), L10n.t("theme.hint")) {
+                    Picker("", selection: $state.appColorScheme) {
+                        ForEach(AppColorScheme.allCases) { scheme in
+                            Text(scheme.localizedLabel).tag(scheme)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .fixedSize()
+                }
                 windowRow(L10n.t("language"), L10n.t("language.hint"), showDivider: false) {
                     Picker("", selection: $state.appLanguage) {
                         ForEach(AppLanguage.allCases) { lang in

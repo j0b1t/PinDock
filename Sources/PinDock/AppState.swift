@@ -61,6 +61,15 @@ final class AppState: ObservableObject {
         }
     }
 
+    @Published var appColorScheme: AppColorScheme {
+        didSet {
+            guard oldValue != appColorScheme else { return }
+            Preferences.shared.appColorScheme = appColorScheme
+            appColorScheme.apply()
+            NotificationCenter.default.post(name: .pindockColorSchemeDidChange, object: appColorScheme)
+        }
+    }
+
     @Published var blockedDisplayIDs: Set<UInt32> {
         didSet { Preferences.shared.blockedDisplayIDs = blockedDisplayIDs }
     }
@@ -125,9 +134,11 @@ final class AppState: ObservableObject {
         launchAtLogin = LaunchAtLogin.isEnabled
         appPresentation = prefs.appPresentation
         appLanguage = prefs.appLanguage
+        appColorScheme = prefs.appColorScheme
         blockedDisplayIDs = prefs.blockedDisplayIDs
         autoCheckForUpdates = prefs.autoCheckForUpdates
         autoInstallUpdates = prefs.autoInstallUpdates
+        appColorScheme.apply()
         refresh()
         startPolling()
         scheduleAutomaticUpdateChecks(immediate: false)
