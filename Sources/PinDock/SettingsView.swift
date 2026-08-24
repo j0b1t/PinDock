@@ -74,6 +74,7 @@ struct SettingsView: View {
         .frame(width: panelWidth, height: Self.compactPanelSize.height)
         .background { glassBackground }
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .foregroundStyle(.primary)
         // Menu-bar panel is often not the key window — keep glass/controls looking active.
         .environment(\.controlActiveState, .key)
     }
@@ -112,7 +113,7 @@ struct SettingsView: View {
             HStack(spacing: 10) {
                 Image(systemName: "arrow.down.circle.fill")
                     .font(.system(size: 16))
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(PinDockColor.accent)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(L10n.t("update.banner"))
                         .font(.system(size: 12, weight: .semibold))
@@ -154,7 +155,7 @@ struct SettingsView: View {
         HStack(spacing: 10) {
             Image(systemName: "arrow.uturn.backward.circle.fill")
                 .font(.system(size: 20))
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(PinDockColor.accent)
             VStack(alignment: .leading, spacing: 2) {
                 Text(L10n.t("dockAway"))
                     .font(.system(size: 12, weight: .semibold))
@@ -211,7 +212,7 @@ struct SettingsView: View {
         icon: String,
         title: String,
         detail: String,
-        iconColor: Color = Color.accentColor,
+        iconColor: Color = PinDockColor.accent,
         @ViewBuilder trailing: () -> Trailing
     ) -> some View {
         HStack(spacing: 10) {
@@ -241,8 +242,8 @@ struct SettingsView: View {
             HStack(spacing: 6) {
                 PinDockMark(size: 14)
                 Text("PinDock")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.primary)
             }
             settingsRow(L10n.t("enable"), L10n.t("enable.hint")) {
                 Toggle("", isOn: $state.isEnabled)
@@ -500,15 +501,15 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(L10n.t("version", state.appVersion))
                 .font(.system(size: 10))
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(L10n.t("support"))
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                 Text(L10n.t("support.hint"))
                     .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.secondary)
                 HStack(spacing: 8) {
                     supportChip("Lightning", systemImage: "bolt.fill",
                                 url: URL(string: "https://strike.me/j0b1t")!)
@@ -549,10 +550,12 @@ struct SettingsView: View {
     ) -> some View {
         HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 1) {
-                Text(title).font(.system(size: 12, weight: .medium))
+                Text(title)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.primary)
                     .lineLimit(1)
                 Text(subtitle)
-                    .font(.system(size: 10))
+                    .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -574,8 +577,8 @@ struct SettingsView: View {
                 Text(text)
             }
         }
-        .font(.system(size: 12, weight: .semibold))
-        .foregroundStyle(.secondary)
+        .font(.system(size: 13, weight: .semibold))
+        .foregroundStyle(.primary)
     }
 
     private var chipFill: some View {
