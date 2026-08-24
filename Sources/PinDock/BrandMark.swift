@@ -113,11 +113,15 @@ struct PinDockGlass: View {
             }
             if colorScheme == .dark {
                 Rectangle()
-                    .fill(Color.black.opacity(0.22))
+                    .fill(Color.black.opacity(0.10))
                     .blendMode(.plusDarker)
                 Rectangle()
-                    .fill(Color.white.opacity(0.05))
+                    .fill(Color.white.opacity(0.08))
                     .blendMode(.plusLighter)
+            } else {
+                Rectangle()
+                    .fill(Color.black.opacity(0.10))
+                    .blendMode(.plusDarker)
             }
         }
     }
@@ -129,6 +133,6 @@ struct PinDockCardFill: View {
 
     var body: some View {
         Rectangle()
-            .fill(colorScheme == .dark ? Color.white.opacity(0.07) : Color.black.opacity(0.05))
+            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.08))
     }
 }
