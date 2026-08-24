@@ -260,13 +260,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     private func matchPopoverChrome(hostingView: NSView, in window: NSWindow) {
+        var ancestorIDs = Set<ObjectIdentifier>()
+        var ancestor = hostingView.superview
+        while let view = ancestor {
+            ancestorIDs.insert(ObjectIdentifier(view))
+            ancestor = view.superview
+        }
+
         func restyle(_ view: NSView) {
             if view === hostingView { return }
             if let effect = view as? NSVisualEffectView {
                 effect.material = .hudWindow
                 effect.blendingMode = .behindWindow
-                effect.state = .active
                 effect.isEmphasized = false
+                if ancestorIDs.contains(ObjectIdentifier(effect)) {
+                    // Parent of our glass — stacking it made Light too bright / Dark too dark.
+                    effect.state = .inactive
+                } else {
+                    effect.state = .active
+                }
             }
             for sub in view.subviews where sub !== hostingView {
                 restyle(sub)
