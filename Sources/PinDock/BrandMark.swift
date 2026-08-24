@@ -100,8 +100,7 @@ enum PinDockColor {
     static let dock = Color(red: 1.0, green: 0.584, blue: 0.0)
 }
 
-/// Shared liquid-glass fill for window, title bar, and menu-bar panel.
-/// Light = original pre-theme glass (ultra-thin + 32% white). Dark = charcoal bubble.
+/// Shared liquid-glass fill. Dark = charcoal HUD. Light = the same HUD without darkening.
 struct PinDockGlass: View {
     @Environment(\.colorScheme) private var colorScheme
     /// Popover chrome already blurs; only draw the wash so we don’t stack two materials.
@@ -110,11 +109,7 @@ struct PinDockGlass: View {
     var body: some View {
         ZStack {
             if fillMaterial {
-                if colorScheme == .dark {
-                    GlassBackdrop(material: .hudWindow, emphasized: false)
-                } else {
-                    Rectangle().fill(.ultraThinMaterial)
-                }
+                GlassBackdrop(material: .hudWindow, emphasized: false)
             }
             if colorScheme == .dark {
                 Rectangle()
@@ -122,10 +117,6 @@ struct PinDockGlass: View {
                     .blendMode(.plusDarker)
                 Rectangle()
                     .fill(Color.white.opacity(0.05))
-                    .blendMode(.plusLighter)
-            } else {
-                Rectangle()
-                    .fill(Color.white.opacity(0.32))
                     .blendMode(.plusLighter)
             }
         }
@@ -137,12 +128,7 @@ struct PinDockCardFill: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        Group {
-            if colorScheme == .dark {
-                Rectangle().fill(Color.white.opacity(0.07))
-            } else {
-                Rectangle().fill(.ultraThinMaterial)
-            }
-        }
+        Rectangle()
+            .fill(colorScheme == .dark ? Color.white.opacity(0.07) : Color.black.opacity(0.05))
     }
 }
