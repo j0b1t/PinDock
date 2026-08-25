@@ -229,6 +229,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     private func showPopover(relativeTo button: NSStatusBarButton) {
         AppState.shared.refresh()
         AppState.shared.checkForUpdates(force: false)
+        AppState.shared.menuBarOpenNonce += 1
 
         popover?.appearance = NSApp.effectiveAppearance
         popover?.contentSize = SettingsView.compactPanelSize

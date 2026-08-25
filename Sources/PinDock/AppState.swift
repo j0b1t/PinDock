@@ -117,6 +117,8 @@ final class AppState: ObservableObject {
     @Published private(set) var updateProgress: Double = 0
     @Published private(set) var updateCheckIdleMessage: String = ""
     @Published private(set) var updateErrorMessage: String = ""
+    /// Bumped each time the menu-bar panel opens so it always starts on Dock.
+    @Published var menuBarOpenNonce: Int = 0
 
     var appVersion: String { UpdateChecker.localVersion }
     var appBuild: String { UpdateChecker.localBuild }

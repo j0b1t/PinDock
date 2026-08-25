@@ -30,6 +30,9 @@ struct SettingsView: View {
             }
         }
         .id(state.appLanguage)
+        .onChange(of: state.menuBarOpenNonce) { _ in
+            compactTab = .dock
+        }
         .onAppear {
             state.refresh()
             if state.autoCheckForUpdates {
