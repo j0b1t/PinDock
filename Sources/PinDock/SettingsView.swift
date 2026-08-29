@@ -248,12 +248,22 @@ struct SettingsView: View {
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.primary)
             }
-            settingsRow(L10n.t("enable"), L10n.t("enable.hint")) {
-                Toggle("", isOn: $state.isEnabled)
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .controlSize(.small)
-                    .tint(PinDockColor.accent)
+            VStack(spacing: 0) {
+                settingsRow(L10n.t("enable"), L10n.t("enable.hint")) {
+                    Toggle("", isOn: $state.isEnabled)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                        .tint(PinDockColor.accent)
+                }
+                Divider().padding(.leading, 12)
+                settingsRow(L10n.t("autohide"), L10n.t("autohide.hint")) {
+                    Toggle("", isOn: $state.dockAutoHide)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                        .tint(PinDockColor.accent)
+                }
             }
             .background(chipFill)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -364,6 +374,14 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 6) {
             sectionLabel(L10n.t("pane.behavior"), systemImage: "slider.horizontal.3")
             VStack(spacing: 0) {
+                settingsRow(L10n.t("autohide"), L10n.t("autohide.hint")) {
+                    Toggle("", isOn: $state.dockAutoHide)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                        .tint(PinDockColor.accent)
+                }
+                Divider().padding(.leading, 12)
                 settingsRow(L10n.t("moveBack"), "⌘⇧D") {
                     Text("⌘⇧D")
                         .font(.system(size: 11, weight: .medium, design: .rounded))

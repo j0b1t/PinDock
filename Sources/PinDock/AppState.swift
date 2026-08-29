@@ -47,6 +47,14 @@ final class AppState: ObservableObject {
         didSet { LaunchAtLogin.isEnabled = launchAtLogin }
     }
 
+    /// System Dock auto-hide (not a PinDock preference — live macOS setting).
+    @Published var dockAutoHide: Bool {
+        didSet {
+            guard oldValue != dockAutoHide else { return }
+            DockAutoHide.isEnabled = dockAutoHide
+        }
+    }
+
     @Published var appPresentation: AppPresentation {
         didSet {
             guard oldValue != appPresentation else { return }
@@ -138,6 +146,7 @@ final class AppState: ObservableObject {
         modifierKey = prefs.modifierKey
         restoreOnWake = prefs.restoreOnWake
         launchAtLogin = LaunchAtLogin.isEnabled
+        dockAutoHide = DockAutoHide.isEnabled
         appPresentation = prefs.appPresentation
         appLanguage = prefs.appLanguage
         appColorScheme = prefs.appColorScheme
@@ -147,6 +156,7 @@ final class AppState: ObservableObject {
         appColorScheme.apply()
         refresh()
         startPolling()
+        observeSystemDockAutoHide()
         scheduleAutomaticUpdateChecks(immediate: false)
     }
 
@@ -204,7 +214,26 @@ final class AppState: ObservableObject {
         }
         let host = displayHostingDock
         dockIsAway = host != 0 && defaultDisplayID != 0 && host != defaultDisplayID
+        refreshDockAutoHideFromSystem()
         refreshStatus()
+    }
+
+    /// Keep the toggle in sync if the user changes it in System Settings.
+    func refreshDockAutoHideFromSystem() {
+        let actual = DockAutoHide.isEnabled
+        if dockAutoHide != actual {
+            dockAutoHide = actual
+        }
+    }
+
+    private func observeSystemDockAutoHide() {
+        DistributedNotificationCenter.default().addObserver(
+            forName: Notification.Name("com.apple.dock.prefschanged"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.refreshDockAutoHideFromSystem()
+        }
     }
 
     private var displayHostingDock: UInt32 {

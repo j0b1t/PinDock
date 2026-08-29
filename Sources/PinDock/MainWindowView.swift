@@ -244,6 +244,12 @@ struct MainWindowView: View {
                         .labelsHidden()
                         .controlSize(.small)
                 }
+                windowRow(L10n.t("autohide"), L10n.t("autohide.hint")) {
+                    Toggle("", isOn: $state.dockAutoHide)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                }
                 windowRow(L10n.t("status"), showDivider: false) {
                     Text(state.statusLine)
                         .font(.system(size: 12))
@@ -331,6 +337,12 @@ struct MainWindowView: View {
     private var behaviorPage: some View {
         page(title: L10n.t("pane.behavior"), subtitle: L10n.t("behavior.subtitle")) {
             glassCard {
+                windowRow(L10n.t("autohide"), L10n.t("autohide.hint")) {
+                    Toggle("", isOn: $state.dockAutoHide)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .controlSize(.small)
+                }
                 windowRow(L10n.t("moveBack"), L10n.t("moveBack.hint")) {
                     Text("⌘⇧D")
                         .font(.system(size: 13, weight: .medium, design: .rounded))
