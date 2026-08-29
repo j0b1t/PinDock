@@ -1,28 +1,36 @@
-# Maintainer notes
+# Contributing
 
-PinDock is a **private commercial** app. The GitHub repo is private and must stay private.
+PinDock is open source (MIT) for **use and study**. External contributions are **by invitation only**.
 
-## Branch policy
+## Branch policy (maintainer)
 
-| Branch | Purpose |
-|--------|---------|
-| **`dev`** | Active work (local, default) |
-| **`main`** | Stable snapshots — only after explicit acceptance |
+| Branch | Visibility | Purpose |
+|--------|------------|---------|
+| **`main`** | Public (GitHub) | Stable releases only |
+| **`dev`** | Local / not published | Active development until accepted |
 
-New work stays on **`dev`**. Do not make the repository public.
+New work stays on **`dev`**. It is merged to **`main`** only after explicit acceptance.  
+**`dev` is not pushed** to the public repository (GitHub cannot hide a branch on a public repo).
 
-## Releases
+## Release policy (maintainer)
 
-Paid distribution is not wired yet. Until then:
+Every **new version** on `main` must ship as a **GitHub Release** (tag `vX.Y.Z` + `PinDock-X.Y.Z.zip`):
 
 1. Bump `CFBundleShortVersionString` / `CFBundleVersion` in `Resources/Info.plist`
-2. Merge accepted work to **`main`** only when asked
-3. `./Scripts/package_zip.sh` for a local ZIP
+2. Merge accepted work to **`main`** and push
+3. Run `./Scripts/release.sh` (or `./Scripts/release.sh X.Y.Z`)
 
-Do not publish public GitHub Releases.
+Do **not** leave version bumps on `main` without a corresponding public release.
+
+## Please do
+
+- Open an **issue** for clear bugs (macOS version, display layout, Dock position).  
+- Fork and modify for yourself under the MIT license.
 
 ## Please don’t
 
-- Change visibility back to public
-- Restore an MIT license on new versions
-- Push unless explicitly asked
+- Open pull requests without a prior, explicit invitation from the maintainer.  
+- Expect reviews of drive‑by patches or feature PRs.  
+- Treat `main` as a working branch.
+
+Unsolicited pull requests may be closed without comment.

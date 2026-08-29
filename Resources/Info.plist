@@ -19,9 +19,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.4</string>
+	<string>1.1.0</string>
 	<key>CFBundleVersion</key>
-	<string>5</string>
+	<string>6</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>13.0</string>
 	<key>NSAppleEventsUsageDescription</key>
@@ -29,6 +29,6 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2026 PinDock. All rights reserved.</string>
+	<string>Open source under the MIT License</string>
 </dict>
 </plist>

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build PinDock.app and zip it for distribution (no DMG needed).
+# Build PinDock.app and zip it for GitHub Releases (no DMG needed).
 # Users: unzip → drag PinDock.app to Applications.
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

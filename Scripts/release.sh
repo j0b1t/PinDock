@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build PinDock-*.zip and publish a private GitHub Release (repo must stay private).
+# Build PinDock-*.zip and publish a GitHub Release.
 # Usage:
 #   ./Scripts/release.sh              # version from Info.plist
 #   ./Scripts/release.sh 1.0.1        # override version
