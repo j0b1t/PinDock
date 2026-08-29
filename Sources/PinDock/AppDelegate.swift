@@ -301,14 +301,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     private func runMenubarDemo() {
-        let steps: [(TimeInterval, String)] = [
-            (1.5, "settings"),
-            (3.4, "dock"),
-            (4.8, "settings"),
+        let tabSteps: [(TimeInterval, String)] = [
+            (1.2, "settings"),
         ]
-        for (delay, tab) in steps {
+        for (delay, tab) in tabSteps {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 NotificationCenter.default.post(name: .pindockPreviewTab, object: tab)
+            }
+        }
+        let scrollSteps: [(TimeInterval, String)] = [
+            (2.4, "behavior"),
+            (3.6, "permissions"),
+            (4.8, "updates"),
+            (6.0, "footer"),
+            (7.2, "appearance"),
+        ]
+        for (delay, section) in scrollSteps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                NotificationCenter.default.post(name: .pindockPreviewScroll, object: section)
             }
         }
     }

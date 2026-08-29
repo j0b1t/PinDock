@@ -142,20 +142,31 @@ capture_gif() {
       screencapture -x -l"${id}" "${name}" || true
     fi
   done
-  python3 "${ROOT}/Scripts/make_gif.py" "${frames}" "${dest}" "${max_width}" 120
+  python3 "${ROOT}/Scripts/make_gif.py" "${frames}" "${dest}" "${max_width}" 100 256
   kill "${LAUNCH_PID}" 2>/dev/null || pkill -x PinDock 2>/dev/null || true
   wait "${LAUNCH_PID}" 2>/dev/null || true
   sleep 0.3
 }
 
-echo "==> Stills (real menu-bar bubble + arrow, app window)"
+echo "==> Stills dark (real menu-bar bubble + arrow, app window)"
+defaults write "${DOMAIN}" appColorScheme dark
 capture_still "--ui-preview-popover" "${OUT}/screenshot-popover.png"
 capture_still "--ui-preview-popover-settings" "${OUT}/screenshot-settings.png"
 capture_still "--ui-preview-window" "${OUT}/screenshot-window.png"
+cp "${OUT}/screenshot-popover.png" "${OUT}/screenshot-popover-dark.png"
+cp "${OUT}/screenshot-settings.png" "${OUT}/screenshot-settings-dark.png"
+cp "${OUT}/screenshot-window.png" "${OUT}/screenshot-window-dark.png"
 cp "${OUT}/screenshot-settings.png" "${OUT}/screenshot-menubar.png"
 
-echo "==> Walkthrough GIFs"
-capture_gif "--ui-demo-menubar" "${OUT}/walkthrough-menubar.gif" 6.2 420
-capture_gif "--ui-demo-window" "${OUT}/walkthrough-window.gif" 6.2 720
+echo "==> Stills light"
+defaults write "${DOMAIN}" appColorScheme light
+capture_still "--ui-preview-popover" "${OUT}/screenshot-popover-light.png"
+capture_still "--ui-preview-popover-settings" "${OUT}/screenshot-settings-light.png"
+capture_still "--ui-preview-window" "${OUT}/screenshot-window-light.png"
+
+echo "==> Walkthrough GIFs (dark, 2× README display size)"
+defaults write "${DOMAIN}" appColorScheme dark
+capture_gif "--ui-demo-menubar" "${OUT}/walkthrough-menubar.gif" 8.5 900
+capture_gif "--ui-demo-window" "${OUT}/walkthrough-window.gif" 7.5 1600
 
 echo "Done."

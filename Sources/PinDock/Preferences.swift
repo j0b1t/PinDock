@@ -92,6 +92,8 @@ extension Notification.Name {
     static let pindockColorSchemeDidChange = Notification.Name("pindockColorSchemeDidChange")
     /// README demo: `"dock"` / `"settings"`.
     static let pindockPreviewTab = Notification.Name("pindockPreviewTab")
+    /// README demo: Settings section id (`appearance`, `behavior`, …).
+    static let pindockPreviewScroll = Notification.Name("pindockPreviewScroll")
     /// README demo: `MainWindowView.WindowPane.rawValue`.
     static let pindockPreviewPane = Notification.Name("pindockPreviewPane")
 }

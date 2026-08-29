@@ -33,17 +33,27 @@
 </p>
 
 <p align="center">
-  <em>Menu bar bubble — Dock ↔ Settings (theme, language, Dock auto-hide)</em>
+  <em>Menu bar — Dock, then Settings (scroll: Appearance → Behavior → Permissions → Updates)</em>
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-popover.png" width="300" alt="PinDock 1.1.0 — menu bar Dock tab with popover arrow">
+  <img src="docs/assets/screenshot-popover.png" width="280" alt="PinDock 1.1.0 — menu bar Dock tab, dark">
   &nbsp;
-  <img src="docs/assets/screenshot-settings.png" width="300" alt="PinDock 1.1.0 — menu bar Settings tab with popover arrow">
+  <img src="docs/assets/screenshot-popover-light.png" width="280" alt="PinDock 1.1.0 — menu bar Dock tab, light">
 </p>
 
 <p align="center">
-  <em>Same bubble with the speech-arrow on the pin · Dock tab · Settings tab</em>
+  <em>Dock tab · Dark and Light</em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/screenshot-settings.png" width="280" alt="PinDock 1.1.0 — menu bar Settings tab, dark">
+  &nbsp;
+  <img src="docs/assets/screenshot-settings-light.png" width="280" alt="PinDock 1.1.0 — menu bar Settings tab, light">
+</p>
+
+<p align="center">
+  <em>Settings · Dark and Light — theme, language, Dock auto-hide</em>
 </p>
 
 <p align="center">
@@ -55,7 +65,19 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-window.png" width="720" alt="PinDock 1.1.0 — app window, Displays">
+  <img src="docs/assets/screenshot-window.png" width="680" alt="PinDock 1.1.0 — app window, dark">
+</p>
+
+<p align="center">
+  <em>App window · Dark</em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/screenshot-window-light.png" width="680" alt="PinDock 1.1.0 — app window, light">
+</p>
+
+<p align="center">
+  <em>App window · Light</em>
 </p>
 
 ---
