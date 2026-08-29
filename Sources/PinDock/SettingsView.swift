@@ -248,22 +248,12 @@ struct SettingsView: View {
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.primary)
             }
-            VStack(spacing: 0) {
-                settingsRow(L10n.t("enable"), L10n.t("enable.hint")) {
-                    Toggle("", isOn: $state.isEnabled)
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                        .controlSize(.small)
-                        .tint(PinDockColor.accent)
-                }
-                Divider().padding(.leading, 12)
-                settingsRow(L10n.t("autohide"), L10n.t("autohide.hint")) {
-                    Toggle("", isOn: $state.dockAutoHide)
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                        .controlSize(.small)
-                        .tint(PinDockColor.accent)
-                }
+            settingsRow(L10n.t("enable"), L10n.t("enable.hint")) {
+                Toggle("", isOn: $state.isEnabled)
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .controlSize(.small)
+                    .tint(PinDockColor.accent)
             }
             .background(chipFill)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))

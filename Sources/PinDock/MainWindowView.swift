@@ -244,12 +244,6 @@ struct MainWindowView: View {
                         .labelsHidden()
                         .controlSize(.small)
                 }
-                windowRow(L10n.t("autohide"), L10n.t("autohide.hint")) {
-                    Toggle("", isOn: $state.dockAutoHide)
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                        .controlSize(.small)
-                }
                 windowRow(L10n.t("status"), showDivider: false) {
                     Text(state.statusLine)
                         .font(.system(size: 12))
