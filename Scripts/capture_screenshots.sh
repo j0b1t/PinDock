@@ -148,6 +148,15 @@ capture_gif() {
   sleep 0.3
 }
 
+if [[ "${1:-}" == "--gifs-only" ]]; then
+  echo "==> Walkthrough GIFs only (dark, transparent surround)"
+  defaults write "${DOMAIN}" appColorScheme dark
+  capture_gif "--ui-demo-menubar" "${OUT}/walkthrough-menubar.gif" 8.5 900
+  capture_gif "--ui-demo-window" "${OUT}/walkthrough-window.gif" 7.5 1600
+  echo "Done."
+  exit 0
+fi
+
 echo "==> Stills dark (real menu-bar bubble + arrow, app window)"
 defaults write "${DOMAIN}" appColorScheme dark
 capture_still "--ui-preview-popover" "${OUT}/screenshot-popover.png"
