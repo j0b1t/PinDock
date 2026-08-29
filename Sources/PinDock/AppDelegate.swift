@@ -43,12 +43,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             scheduleLoginRestore()
         }
 
-        // Maintainer helper: `PinDock --ui-preview` opens the panel as a window for screenshots.
-        // Engine is started above so the UI matches a real session (no false banners).
-        if CommandLine.arguments.contains("--ui-preview") {
+        // Maintainer helpers for README screenshots (engine already started so status is real).
+        //   --ui-preview            menu-bar Dock tab
+        //   --ui-preview-settings   menu-bar Settings tab
+        //   --ui-preview-window     standalone app window (Displays)
+        if CommandLine.arguments.contains("--ui-preview")
+            || CommandLine.arguments.contains("--ui-preview-settings") {
             NSApp.setActivationPolicy(.regular)
             AppState.shared.refresh()
             showUIPreviewWindow()
+            return
+        }
+        if CommandLine.arguments.contains("--ui-preview-window") {
+            NSApp.setActivationPolicy(.regular)
+            AppState.shared.refresh()
+            showMainWindow()
+            if let window = mainWindow {
+                var frame = window.frame
+                frame.size = Self.defaultWindowSize
+                window.setFrame(frame, display: true)
+                window.center()
+            }
             return
         }
 
@@ -67,7 +82,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 
     private func showUIPreviewWindow() {
         let panelW: CGFloat = SettingsView.compactPanelSize.width
-        let panelH: CGFloat = 680
+        let panelH: CGFloat = SettingsView.compactPanelSize.height
         let root = SettingsView(state: AppState.shared)
             .frame(width: panelW, height: panelH)
         let hosting = NSHostingController(rootView: root)

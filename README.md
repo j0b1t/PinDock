@@ -29,15 +29,27 @@
 ---
 
 <p align="center">
-  <img src="docs/assets/screenshot-popover.png" width="360" alt="PinDock panel — displays, allowed list, behavior">
+  <img src="docs/assets/screenshot-popover.png" width="360" alt="PinDock 1.1.0 — menu bar, Dock tab">
 </p>
 
 <p align="center">
-  <em>Real app UI — menu bar panel (glass style). Displays · Allowed · Behavior · Permissions · Updates.</em>
+  <em>v1.1.0 menu bar · <strong>Dock</strong> tab — pin, display map, allow list</em>
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-menubar.png" width="380" alt="PinDock panel (floating)">
+  <img src="docs/assets/screenshot-settings.png" width="360" alt="PinDock 1.1.0 — menu bar, Settings tab">
+</p>
+
+<p align="center">
+  <em>Settings — appearance, Dock auto-hide, Move Back, wake restore</em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/screenshot-window.png" width="720" alt="PinDock 1.1.0 — app window, Displays">
+</p>
+
+<p align="center">
+  <em>App window — sidebar, arrangement map, allowed displays</em>
 </p>
 
 ---

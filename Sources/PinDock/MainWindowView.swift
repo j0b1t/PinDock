@@ -5,7 +5,8 @@ import AppKit
 struct MainWindowView: View {
     @ObservedObject var state: AppState
     @Environment(\.colorScheme) private var colorScheme
-    @State private var pane: WindowPane = .general
+    @State private var pane: WindowPane =
+        CommandLine.arguments.contains("--ui-preview-window") ? .displays : .general
 
     enum WindowPane: String, CaseIterable, Identifiable, Hashable {
         case general
