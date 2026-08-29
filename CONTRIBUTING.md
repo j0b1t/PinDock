@@ -22,7 +22,8 @@ Every **new version** on `main` must ship as a **GitHub Release** (tag `vX.Y.Z` 
 
 Do **not** leave version bumps on `main` without a corresponding public release.
 
-README shots: `./Scripts/install.sh && ./Scripts/capture_screenshots.sh` (Dock tab, Settings tab, app window).
+README shots + GIFs: `./Scripts/install.sh && ./Scripts/capture_screenshots.sh`  
+(real menu-bar bubble with arrow, app window, walkthrough GIFs).
 
 ## Please do
 

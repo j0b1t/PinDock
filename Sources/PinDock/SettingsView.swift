@@ -33,9 +33,14 @@ struct SettingsView: View {
         .onChange(of: state.menuBarOpenNonce) { _ in
             compactTab = .dock
         }
+        .onReceive(NotificationCenter.default.publisher(for: .pindockPreviewTab)) { note in
+            guard let raw = note.object as? String else { return }
+            compactTab = raw == "settings" ? .settings : .dock
+        }
         .onAppear {
             state.refresh()
-            if CommandLine.arguments.contains("--ui-preview-settings") {
+            if CommandLine.arguments.contains("--ui-preview-settings")
+                || CommandLine.arguments.contains("--ui-preview-popover-settings") {
                 compactTab = .settings
             }
             if state.autoCheckForUpdates {

@@ -9,6 +9,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     private var mainWindow: NSWindow?
     private var popoverLocalClickMonitor: Any?
     private var popoverGlobalClickMonitor: Any?
+    /// README screenshot / GIF demo — keep the popover open and key.
+    private var uiPreviewMode = false
 
     /// Last known display IDs — used so we only auto-restore on real plug/unplug.
     private var knownDisplayIDs: Set<UInt32> = []
@@ -43,18 +45,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             scheduleLoginRestore()
         }
 
-        // Maintainer helpers for README screenshots (engine already started so status is real).
-        //   --ui-preview            menu-bar Dock tab
-        //   --ui-preview-settings   menu-bar Settings tab
-        //   --ui-preview-window     standalone app window (Displays)
-        if CommandLine.arguments.contains("--ui-preview")
-            || CommandLine.arguments.contains("--ui-preview-settings") {
+        // Maintainer helpers for README screenshots / GIFs (engine already started so status is real).
+        //   --ui-preview-popover            real menu-bar bubble + arrow, Dock tab
+        //   --ui-preview-popover-settings   same bubble, Settings tab
+        //   --ui-demo-menubar               bubble walkthrough (Dock → Settings → Dock)
+        //   --ui-preview-window             standalone app window (Displays)
+        //   --ui-demo-window                window walkthrough (Displays → Behavior → Appearance)
+        //   --ui-preview / --ui-preview-settings   borderless panel fallback (no arrow)
+        let args = CommandLine.arguments
+        if args.contains("--ui-preview-popover")
+            || args.contains("--ui-preview-popover-settings")
+            || args.contains("--ui-demo-menubar") {
+            uiPreviewMode = true
+            NSApp.setActivationPolicy(.accessory)
+            AppState.shared.refresh()
+            setupStatusItem()
+            setupPopover()
+            updateStatusIcon()
+            let wantSettings = args.contains("--ui-preview-popover-settings")
+            let demo = args.contains("--ui-demo-menubar")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                guard let self, let button = self.statusItem?.button else { return }
+                self.showPopover(relativeTo: button)
+                if wantSettings {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        NotificationCenter.default.post(name: .pindockPreviewTab, object: "settings")
+                    }
+                }
+                if demo { self.runMenubarDemo() }
+            }
+            return
+        }
+        if args.contains("--ui-preview") || args.contains("--ui-preview-settings") {
+            uiPreviewMode = true
             NSApp.setActivationPolicy(.regular)
             AppState.shared.refresh()
             showUIPreviewWindow()
             return
         }
-        if CommandLine.arguments.contains("--ui-preview-window") {
+        if args.contains("--ui-preview-window") || args.contains("--ui-demo-window") {
+            uiPreviewMode = true
             NSApp.setActivationPolicy(.regular)
             AppState.shared.refresh()
             showMainWindow()
@@ -63,6 +93,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
                 frame.size = Self.defaultWindowSize
                 window.setFrame(frame, display: true)
                 window.center()
+            }
+            if args.contains("--ui-demo-window") {
+                runWindowDemo()
             }
             return
         }
@@ -165,6 +198,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     func applicationDidResignActive(_ notification: Notification) {
+        if uiPreviewMode { return }
         popover?.performClose(nil)
     }
 
@@ -261,7 +295,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         // Do not NSApp.activate — that pulls PinDock to the foreground.
         popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         preparePopoverWindow()
-        installPopoverDismissMonitors()
+        if !uiPreviewMode {
+            installPopoverDismissMonitors()
+        }
+    }
+
+    private func runMenubarDemo() {
+        let steps: [(TimeInterval, String)] = [
+            (1.5, "settings"),
+            (3.4, "dock"),
+            (4.8, "settings"),
+        ]
+        for (delay, tab) in steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                NotificationCenter.default.post(name: .pindockPreviewTab, object: tab)
+            }
+        }
+    }
+
+    private func runWindowDemo() {
+        let steps: [(TimeInterval, String)] = [
+            (1.4, "behavior"),
+            (3.0, "appearance"),
+            (4.6, "displays"),
+        ]
+        for (delay, pane) in steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                NotificationCenter.default.post(name: .pindockPreviewPane, object: pane)
+            }
+        }
     }
 
     /// Keep the system bubble + arrow. Don’t steal key/activation from the front app.

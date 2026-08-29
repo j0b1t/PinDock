@@ -5,8 +5,13 @@ import AppKit
 struct MainWindowView: View {
     @ObservedObject var state: AppState
     @Environment(\.colorScheme) private var colorScheme
-    @State private var pane: WindowPane =
-        CommandLine.arguments.contains("--ui-preview-window") ? .displays : .general
+    @State private var pane: WindowPane = {
+        let args = CommandLine.arguments
+        if args.contains("--ui-preview-window") || args.contains("--ui-demo-window") {
+            return .displays
+        }
+        return .general
+    }()
 
     enum WindowPane: String, CaseIterable, Identifiable, Hashable {
         case general
@@ -106,6 +111,10 @@ struct MainWindowView: View {
         )
         .id(state.appLanguage)
         .animation(.easeInOut(duration: 0.15), value: sidebarExpanded)
+        .onReceive(NotificationCenter.default.publisher(for: .pindockPreviewPane)) { note in
+            guard let raw = note.object as? String, let next = WindowPane(rawValue: raw) else { return }
+            pane = next
+        }
     }
 
     private var sidebar: some View {

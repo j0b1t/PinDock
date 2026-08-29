@@ -90,6 +90,10 @@ enum ModifierKey: String, CaseIterable, Hashable, Identifiable {
 extension Notification.Name {
     static let pindockPresentationDidChange = Notification.Name("pindockPresentationDidChange")
     static let pindockColorSchemeDidChange = Notification.Name("pindockColorSchemeDidChange")
+    /// README demo: `"dock"` / `"settings"`.
+    static let pindockPreviewTab = Notification.Name("pindockPreviewTab")
+    /// README demo: `MainWindowView.WindowPane.rawValue`.
+    static let pindockPreviewPane = Notification.Name("pindockPreviewPane")
 }
 
 final class Preferences {

@@ -29,27 +29,33 @@
 ---
 
 <p align="center">
-  <img src="docs/assets/screenshot-popover.png" width="360" alt="PinDock 1.1.0 — menu bar, Dock tab">
+  <img src="docs/assets/walkthrough-menubar.gif" width="360" alt="PinDock 1.1.0 — menu bar walkthrough">
 </p>
 
 <p align="center">
-  <em>v1.1.0 menu bar · <strong>Dock</strong> tab — pin, display map, allow list</em>
+  <em>Menu bar bubble — Dock ↔ Settings (theme, language, Dock auto-hide)</em>
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-settings.png" width="360" alt="PinDock 1.1.0 — menu bar, Settings tab">
+  <img src="docs/assets/screenshot-popover.png" width="300" alt="PinDock 1.1.0 — menu bar Dock tab with popover arrow">
+  &nbsp;
+  <img src="docs/assets/screenshot-settings.png" width="300" alt="PinDock 1.1.0 — menu bar Settings tab with popover arrow">
 </p>
 
 <p align="center">
-  <em>Settings — Appearance (theme, language), Dock auto-hide, Move Back</em>
+  <em>Same bubble with the speech-arrow on the pin · Dock tab · Settings tab</em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/walkthrough-window.gif" width="720" alt="PinDock 1.1.0 — app window walkthrough">
+</p>
+
+<p align="center">
+  <em>App window — Displays → Behavior → Appearance</em>
 </p>
 
 <p align="center">
   <img src="docs/assets/screenshot-window.png" width="720" alt="PinDock 1.1.0 — app window, Displays">
-</p>
-
-<p align="center">
-  <em>App window — sidebar, arrangement map, allowed displays</em>
 </p>
 
 ---
