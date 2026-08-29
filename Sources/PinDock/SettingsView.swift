@@ -14,8 +14,7 @@ struct SettingsView: View {
         case settings
     }
 
-    @State private var compactTab: CompactTab =
-        CommandLine.arguments.contains("--ui-preview-settings") ? .settings : .dock
+    @State private var compactTab: CompactTab = .dock
 
     /// Wide enough that “Show PinDock” + “Menu bar and App” stay on one row.
     static let compactPanelSize = CGSize(width: 440, height: 540)
@@ -36,6 +35,9 @@ struct SettingsView: View {
         }
         .onAppear {
             state.refresh()
+            if CommandLine.arguments.contains("--ui-preview-settings") {
+                compactTab = .settings
+            }
             if state.autoCheckForUpdates {
                 state.checkForUpdates(force: false)
             }

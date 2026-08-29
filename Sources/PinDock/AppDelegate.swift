@@ -80,6 +80,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     /// Borderless floating window with the real SettingsView (for README screenshots).
     private var previewWindow: NSWindow?
 
+    /// Borderless windows cannot become key unless subclassed — needed so
+    /// switches draw the same blue accent as the real (key) app window.
+    private final class PreviewWindow: NSWindow {
+        override var canBecomeKey: Bool { true }
+        override var canBecomeMain: Bool { true }
+    }
+
     private func showUIPreviewWindow() {
         let panelW: CGFloat = SettingsView.compactPanelSize.width
         let panelH: CGFloat = SettingsView.compactPanelSize.height
@@ -88,10 +95,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         let hosting = NSHostingController(rootView: root)
         hosting.view.frame = NSRect(x: 0, y: 0, width: panelW, height: panelH)
 
-        // Borderless panel so screenshots match the real menu-bar popover (no traffic lights).
-        let window = NSPanel(
+        // Borderless but key — screenshots must show active blue switches, not inactive gray.
+        let window = PreviewWindow(
             contentRect: NSRect(x: 0, y: 0, width: panelW, height: panelH),
-            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
+            styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -99,7 +106,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         window.isOpaque = false
         window.backgroundColor = .clear
         window.hasShadow = true
-        window.isFloatingPanel = true
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.contentViewController = hosting
@@ -109,6 +115,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         previewWindow = window
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+        }
         NSLog("PinDock: UI preview window open (for screenshots)")
     }
 

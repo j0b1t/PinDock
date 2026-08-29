@@ -41,7 +41,7 @@
 </p>
 
 <p align="center">
-  <em>Settings — appearance, Dock auto-hide, Move Back, wake restore</em>
+  <em>Settings — Appearance (theme, language), Dock auto-hide, Move Back</em>
 </p>
 
 <p align="center">
@@ -79,7 +79,7 @@ PinDock keeps it where **you** want it — quietly, with no account and no ads.
 - 🚫 **Block list** — forbid the Dock on specific screens  
 - 💤 **Wake / plug** — optional restore to default  
 - 🙈 **Dock auto-hide** — same on/off as System Settings → Desktop & Dock  
-- 🎨 **Appearance** — menu bar, app window, or both · Light / Dark / System  
+- 🎨 **Appearance** — menu bar, app window, or both. Theme (Light / Dark / System) and language live here too.  
 - 📌 **Menu bar** — Control Center–style popover (click outside to dismiss)
 
 ---

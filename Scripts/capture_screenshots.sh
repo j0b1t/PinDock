@@ -86,8 +86,19 @@ capture() {
     pkill -x PinDock 2>/dev/null || true
     exit 1
   fi
-  # Let glass / SwiftUI layout settle.
-  sleep 0.8
+  # Force key/frontmost so NSSwitch draws the blue on-state, not inactive gray.
+  osascript >/dev/null 2>&1 <<'OSA' || true
+tell application "System Events"
+  set frontmost of process "PinDock" to true
+end tell
+OSA
+  sleep 1.4
+  id="$(window_id || true)"
+  if [[ -z "${id}" ]]; then
+    echo "ERROR: PinDock window disappeared before capture (${flag})" >&2
+    pkill -x PinDock 2>/dev/null || true
+    exit 1
+  fi
   # Shadow on, no UI beep. Tight window capture at retina scale.
   screencapture -l"${id}" "${dest}"
   echo "Wrote ${dest} ($(sips -g pixelWidth -g pixelHeight "${dest}" 2>/dev/null | awk '/pixel/{printf $2" "}'))"
