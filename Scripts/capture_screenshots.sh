@@ -153,9 +153,6 @@ defaults write "${DOMAIN}" appColorScheme dark
 capture_still "--ui-preview-popover" "${OUT}/screenshot-popover.png"
 capture_still "--ui-preview-popover-settings" "${OUT}/screenshot-settings.png"
 capture_still "--ui-preview-window" "${OUT}/screenshot-window.png"
-cp "${OUT}/screenshot-popover.png" "${OUT}/screenshot-popover-dark.png"
-cp "${OUT}/screenshot-settings.png" "${OUT}/screenshot-settings-dark.png"
-cp "${OUT}/screenshot-window.png" "${OUT}/screenshot-window-dark.png"
 cp "${OUT}/screenshot-settings.png" "${OUT}/screenshot-menubar.png"
 
 echo "==> Stills light"
