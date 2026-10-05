@@ -46,12 +46,16 @@ struct MainWindowView: View {
     }
 
     @State private var sidebarExpanded = true
-    /// Vertical center of the close/minimize/zoom buttons, measured from the top of the window.
-    @State private var trafficCenter: CGFloat = 20
-    /// Space to the right of those buttons.
+    /// Center of the traffic lights, from the top of the window. Clamped so a bad read cannot move the layout.
+    @State private var trafficCenter: CGFloat = 18
     @State private var trafficTrailing: CGFloat = 78
+    @State private var safeTop: CGFloat = 28
 
     private var sidebarWidth: CGFloat { sidebarExpanded ? 200 : 56 }
+    /// Nudge the title row up into the title bar. Never more than the title-bar height.
+    private var titleNudge: CGFloat {
+        min(max(trafficCenter - safeTop - 14, -36), 0)
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -63,21 +67,31 @@ struct MainWindowView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .padding(10)
-        .padding(.top, max(trafficCenter + 8, 28))
+        .padding(.top, 8)
         .background {
             PinDockGlass()
                 .ignoresSafeArea()
         }
         .frame(minWidth: 560, minHeight: 400)
-        .ignoresSafeArea(edges: .top)
         .overlay(alignment: .top) {
             windowTitleBar
-                .padding(.top, max(trafficCenter - 14, 0))
+                .offset(y: titleNudge)
         }
         .background {
             TrafficLightAnchor { center, trailing in
-                if abs(trafficCenter - center) > 0.5 { trafficCenter = center }
-                if abs(trafficTrailing - trailing) > 0.5 { trafficTrailing = trailing }
+                let c = min(max(center, 8), 40)
+                let t = min(max(trailing, 64), 140)
+                if abs(trafficCenter - c) > 0.5 { trafficCenter = c }
+                if abs(trafficTrailing - t) > 0.5 { trafficTrailing = t }
+            }
+        }
+        .background {
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear { safeTop = min(max(geo.safeAreaInsets.top, 0), 80) }
+                    .onChange(of: geo.safeAreaInsets.top) { top in
+                        safeTop = min(max(top, 0), 80)
+                    }
             }
         }
         .background(
@@ -144,7 +158,7 @@ struct MainWindowView: View {
                   let button = window.standardWindowButton(.zoomButton)
                     ?? window.standardWindowButton(.closeButton) else { return }
             let frame = button.convert(button.bounds, to: content)
-            let center = content.bounds.height - frame.midY
+            let center = content.isFlipped ? frame.midY : content.bounds.height - frame.midY
             let trailing = frame.maxX + 12
             onUpdate(center, trailing)
         }
