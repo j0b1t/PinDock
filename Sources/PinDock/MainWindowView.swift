@@ -46,16 +46,8 @@ struct MainWindowView: View {
     }
 
     @State private var sidebarExpanded = true
-    /// Center of the traffic lights, from the top of the window. Clamped so a bad read cannot move the layout.
-    @State private var trafficCenter: CGFloat = 18
-    @State private var trafficTrailing: CGFloat = 78
-    @State private var safeTop: CGFloat = 28
 
     private var sidebarWidth: CGFloat { sidebarExpanded ? 200 : 56 }
-    /// Nudge the title row up into the title bar. Never more than the title-bar height.
-    private var titleNudge: CGFloat {
-        min(max(trafficCenter - safeTop - 14, -36), 0)
-    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -67,33 +59,21 @@ struct MainWindowView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .padding(10)
-        .padding(.top, 8)
         .background {
             PinDockGlass()
                 .ignoresSafeArea()
         }
         .frame(minWidth: 560, minHeight: 400)
-        .overlay(alignment: .top) {
-            windowTitleBar
-                .offset(y: titleNudge)
-        }
-        .background {
-            TrafficLightAnchor { center, trailing in
-                let c = min(max(center, 8), 40)
-                let t = min(max(trailing, 64), 140)
-                if abs(trafficCenter - c) > 0.5 { trafficCenter = c }
-                if abs(trafficTrailing - t) > 0.5 { trafficTrailing = t }
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                titleBubble
+            }
+            ToolbarItem(placement: .primaryAction) {
+                PinDockStatusChip(state: state)
+                    .titleBubble()
             }
         }
-        .background {
-            GeometryReader { geo in
-                Color.clear
-                    .onAppear { safeTop = min(max(geo.safeAreaInsets.top, 0), 80) }
-                    .onChange(of: geo.safeAreaInsets.top) { top in
-                        safeTop = min(max(top, 0), 80)
-                    }
-            }
-        }
+        .toolbarBackground(.hidden, for: .windowToolbar)
         .background(
             GeometryReader { geo in
                 Color.clear
@@ -108,8 +88,7 @@ struct MainWindowView: View {
         .animation(.easeInOut(duration: 0.15), value: sidebarExpanded)
     }
 
-    /// Title-bar controls. A SwiftUI toolbar in this window does not appear on macOS 27.
-    private var windowTitleBar: some View {
+    private var titleBubble: some View {
         HStack(spacing: 10) {
             Button {
                 sidebarExpanded.toggle()
@@ -128,40 +107,8 @@ struct MainWindowView: View {
             PinDockAppIcon(size: 22)
             Text("PinDock")
                 .font(.system(size: 13, weight: .semibold))
-
-            Spacer(minLength: 8)
-
-            PinDockStatusChip(state: state)
         }
-        .padding(.leading, trafficTrailing)
-        .padding(.trailing, 12)
-        .frame(height: 28)
-    }
-
-    /// Reads the macOS close/minimize/zoom buttons so the title row shares their height.
-    private struct TrafficLightAnchor: NSViewRepresentable {
-        var onUpdate: (CGFloat, CGFloat) -> Void
-
-        func makeNSView(context: Context) -> NSView {
-            let view = NSView(frame: .zero)
-            DispatchQueue.main.async { report(view) }
-            return view
-        }
-
-        func updateNSView(_ view: NSView, context: Context) {
-            DispatchQueue.main.async { report(view) }
-        }
-
-        private func report(_ view: NSView) {
-            guard let window = view.window,
-                  let content = window.contentView,
-                  let button = window.standardWindowButton(.zoomButton)
-                    ?? window.standardWindowButton(.closeButton) else { return }
-            let frame = button.convert(button.bounds, to: content)
-            let center = content.isFlipped ? frame.midY : content.bounds.height - frame.midY
-            let trailing = frame.maxX + 12
-            onUpdate(center, trailing)
-        }
+        .titleBubble()
     }
 
     private var sidebar: some View {
@@ -621,6 +568,22 @@ struct MainWindowView: View {
                 }
             }
         }
+    }
+}
+
+private extension View {
+    /// Soft capsule used for the window title and On/Off status, same idea as 1.1.0.
+    func titleBubble() -> some View {
+        padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background {
+                Capsule(style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        Capsule(style: .continuous)
+                            .fill(Color.primary.opacity(0.06))
+                    }
+            }
     }
 }
 
