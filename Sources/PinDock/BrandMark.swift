@@ -109,7 +109,7 @@ struct PinDockGlass: View {
         ZStack {
             if fillMaterial {
                 GlassBackdrop(
-                    material: colorScheme == .dark ? .hudWindow : .sheet,
+                    material: colorScheme == .dark ? .hudWindow : .underWindowBackground,
                     emphasized: false
                 )
             }
@@ -122,8 +122,9 @@ struct PinDockGlass: View {
                         .fill(Color.white.opacity(0.08))
                         .blendMode(.plusLighter)
                 } else {
+                    // Light veil only. The blur underneath stays visible.
                     Rectangle()
-                        .fill(Color.white.opacity(0.42))
+                        .fill(Color.white.opacity(0.22))
                 }
             }
         }
@@ -136,7 +137,7 @@ struct PinDockCardFill: View {
 
     var body: some View {
         Rectangle()
-            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.05))
+            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.28))
     }
 }
 

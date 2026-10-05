@@ -609,10 +609,10 @@ private struct TitleBubbleModifier: ViewModifier {
             .background {
                 Capsule(style: .continuous)
                     .fill(.ultraThinMaterial)
-                    .opacity(colorScheme == .dark ? 0.72 : 0.9)
+                    .opacity(colorScheme == .dark ? 0.72 : 0.85)
                     .overlay {
                         Capsule(style: .continuous)
-                            .fill(colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.62))
+                            .fill(colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.28))
                     }
                     .overlay {
                         Capsule(style: .continuous)
