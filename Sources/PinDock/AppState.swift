@@ -256,6 +256,65 @@ final class AppState: ObservableObject {
         refreshStatus()
     }
 
+    /// Pick the default that belongs to the displays plugged in right now.
+    /// MacBook-only and MacBook+external each keep their own Default.
+    private func adoptConfigurationHome(prefs: Preferences, dm: DisplayManager) {
+        let signature = DisplayConfiguration.signature(of: displays)
+        guard !signature.isEmpty else { return }
+
+        if let saved = prefs.configurationHomes[signature] {
+            if prefs.defaultDisplayFingerprint != saved {
+                NSLog("PinDock: configuration home → \(saved.name)")
+                prefs.defaultDisplayFingerprint = saved
+            }
+            return
+        }
+
+        if let pending = prefs.pendingExternalHome,
+           let match = displayMatching(pending, among: displays) {
+            let fingerprint = DisplayFingerprint.from(display: match)
+            prefs.rememberHome(fingerprint, for: signature)
+            prefs.defaultDisplayFingerprint = fingerprint
+            prefs.pendingExternalHome = nil
+            NSLog("PinDock: restored pending external default “\(match.name)” for this configuration")
+            return
+        }
+
+        if let fp = prefs.defaultDisplayFingerprint,
+           !fp.isBuiltin,
+           displayMatching(fp, among: displays) == nil,
+           prefs.pendingExternalHome == nil {
+            prefs.pendingExternalHome = fp
+            NSLog("PinDock: held external default “\(fp.name)” until that screen is connected again")
+        }
+
+        if let online = DisplayIdentity.resolve(prefs.defaultDisplayFingerprint, among: displays),
+           !blockedDisplayIDs.contains(online),
+           let info = dm.display(id: online) {
+            prefs.rememberHome(DisplayFingerprint.from(display: info), for: signature)
+            return
+        }
+
+        if let pick = displays.first(where: { $0.isBuiltin && !blockedDisplayIDs.contains($0.id) })
+            ?? displays.first(where: { $0.isMain && !blockedDisplayIDs.contains($0.id) })
+            ?? displays.first(where: { !blockedDisplayIDs.contains($0.id) }) {
+            prefs.setDefaultDisplay(pick)
+            NSLog("PinDock: configuration has no default yet → \(pick.name)")
+        }
+    }
+
+    /// UUID or name match only. Does not treat “any other external” as the same screen.
+    private func displayMatching(_ fp: DisplayFingerprint, among displays: [DisplayInfo]) -> DisplayInfo? {
+        if !fp.uuid.isEmpty {
+            for display in displays {
+                if DisplayIdentity.uuidString(for: display.id) == fp.uuid { return display }
+            }
+        }
+        let named = displays.filter { $0.name == fp.name && $0.isBuiltin == fp.isBuiltin }
+        if named.count == 1 { return named[0] }
+        return nil
+    }
+
     /// Update live IDs from fingerprints. Does **not** clobber a saved external default
     /// with the built-in main just because the ID changed after login.
     private func rebindSavedDisplays() {
@@ -271,6 +330,8 @@ final class AppState: ObservableObject {
            let info = dm.display(id: prefs.currentDockDisplayID) {
             prefs.currentDockFingerprint = DisplayFingerprint.from(display: info)
         }
+
+        adoptConfigurationHome(prefs: prefs, dm: dm)
 
         // --- Default ---
         let defaultMatched = DisplayIdentity.resolve(prefs.defaultDisplayFingerprint, among: displays)

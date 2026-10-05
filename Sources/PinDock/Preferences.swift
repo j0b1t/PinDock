@@ -123,6 +123,10 @@ final class Preferences {
         static let appPresentation = "appPresentation"
         static let appLanguage = "appLanguage"
         static let appColorScheme = "appColorScheme"
+        /// Default Dock display per connected-display set.
+        static let configurationHomes = "configurationHomes"
+        /// External default that was active before its screen was unplugged, if no config entry existed yet.
+        static let pendingExternalHome = "pendingExternalHome"
         // Legacy key migration
         static let legacyAnchor = "anchorDisplayID"
     }
@@ -171,9 +175,40 @@ final class Preferences {
     }
 
     /// Persist default by live display info (ID + stable fingerprint).
+    /// Also remembers it for the display configuration that is connected right now.
     func setDefaultDisplay(_ info: DisplayInfo) {
         defaultDisplayID = info.id
-        defaultDisplayFingerprint = DisplayFingerprint.from(display: info)
+        let fingerprint = DisplayFingerprint.from(display: info)
+        defaultDisplayFingerprint = fingerprint
+        let signature = DisplayConfiguration.signature(of: DisplayManager.shared.displays)
+        guard !signature.isEmpty else { return }
+        var homes = configurationHomes
+        homes[signature] = fingerprint
+        configurationHomes = homes
+    }
+
+    var configurationHomes: [String: DisplayFingerprint] {
+        get {
+            guard let data = defaults.data(forKey: Keys.configurationHomes) else { return [:] }
+            return (try? JSONDecoder().decode([String: DisplayFingerprint].self, from: data)) ?? [:]
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue) {
+                defaults.set(data, forKey: Keys.configurationHomes)
+            }
+        }
+    }
+
+    var pendingExternalHome: DisplayFingerprint? {
+        get { decodeFingerprint(Keys.pendingExternalHome) }
+        set { encodeFingerprint(newValue, key: Keys.pendingExternalHome) }
+    }
+
+    func rememberHome(_ fingerprint: DisplayFingerprint, for signature: String) {
+        guard !signature.isEmpty else { return }
+        var homes = configurationHomes
+        homes[signature] = fingerprint
+        configurationHomes = homes
     }
 
     func setCurrentDockDisplay(_ info: DisplayInfo) {

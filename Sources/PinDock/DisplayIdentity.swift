@@ -25,6 +25,22 @@ struct DisplayFingerprint: Codable, Equatable {
     }
 }
 
+enum DisplayConfiguration {
+    /// Stable key for the set of displays currently attached.
+    /// UUIDs survive unplug/replug; display IDs do not.
+    static func signature(of displays: [DisplayInfo]) -> String {
+        let parts = displays.map { display -> String in
+            if let uuid = DisplayIdentity.uuidString(for: display.id), !uuid.isEmpty {
+                return "u:\(uuid)"
+            }
+            let w = Int(display.cocoaFrame.width.rounded())
+            let h = Int(display.cocoaFrame.height.rounded())
+            return "n:\(display.isBuiltin ? 1 : 0):\(display.name):\(w)x\(h)"
+        }
+        return parts.sorted().joined(separator: "|")
+    }
+}
+
 enum DisplayIdentity {
     /// Hardware UUID for a display when available (stable across sessions).
     static func uuidString(for displayID: CGDirectDisplayID) -> String? {
