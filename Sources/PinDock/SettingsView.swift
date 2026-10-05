@@ -33,16 +33,8 @@ struct SettingsView: View {
         .onChange(of: state.menuBarOpenNonce) { _ in
             compactTab = .dock
         }
-        .onReceive(NotificationCenter.default.publisher(for: .pindockPreviewTab)) { note in
-            guard let raw = note.object as? String else { return }
-            compactTab = raw == "settings" ? .settings : .dock
-        }
         .onAppear {
             state.refresh()
-            if CommandLine.arguments.contains("--ui-preview-settings")
-                || CommandLine.arguments.contains("--ui-preview-popover-settings") {
-                compactTab = .settings
-            }
             if state.autoCheckForUpdates {
                 state.checkForUpdates(force: false)
             }
@@ -60,33 +52,25 @@ struct SettingsView: View {
             .padding(.horizontal, 14)
             .padding(.top, 4)
             .padding(.bottom, 10)
-            ScrollViewReader { proxy in
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        if compactTab == .dock {
-                            if state.updateAvailable { updateBanner }
-                            if state.dockIsAway { moveBackBanner }
-                            if showsAccessibilityBanner { accessibilityBanner }
-                            pinDockEnableSection
-                            defaultSection
-                            allowListSection
-                        } else {
-                            appearanceSection.id("appearance")
-                            behaviorSection.id("behavior")
-                            permissionsSection.id("permissions")
-                            updatesSection.id("updates")
-                            footer.id("footer")
-                        }
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 14)
-                }
-                .onReceive(NotificationCenter.default.publisher(for: .pindockPreviewScroll)) { note in
-                    guard let id = note.object as? String else { return }
-                    withAnimation(.easeInOut(duration: 0.45)) {
-                        proxy.scrollTo(id, anchor: .top)
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 14) {
+                    if compactTab == .dock {
+                        if state.updateAvailable { updateBanner }
+                        if state.dockIsAway { moveBackBanner }
+                        if showsAccessibilityBanner { accessibilityBanner }
+                        pinDockEnableSection
+                        defaultSection
+                        allowListSection
+                    } else {
+                        appearanceSection
+                        behaviorSection
+                        permissionsSection
+                        updatesSection
+                        footer
                     }
                 }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 14)
             }
         }
         // Fixed size so the popover does not jump when switching Dock / Settings.
