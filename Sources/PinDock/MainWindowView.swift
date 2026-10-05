@@ -59,40 +59,15 @@ struct MainWindowView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .padding(10)
+        .padding(.top, 28)
         .background {
             PinDockGlass()
                 .ignoresSafeArea()
         }
         .frame(minWidth: 560, minHeight: 400)
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
-                HStack(spacing: 10) {
-                    Button {
-                        sidebarExpanded.toggle()
-                    } label: {
-                        Image(systemName: "sidebar.leading")
-                            .font(.system(size: 13, weight: .medium))
-                            .frame(width: 18, height: 16)
-                    }
-                    .buttonStyle(.borderless)
-                    .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
-
-                    Rectangle()
-                        .fill(Color.primary.opacity(0.18))
-                        .frame(width: 1, height: 18)
-
-                    PinDockAppIcon(size: 22)
-                    Text("PinDock")
-                        .font(.system(size: 13, weight: .semibold))
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-            }
-            ToolbarItem(placement: .automatic) {
-                PinDockStatusChip(state: state)
-            }
+        .overlay(alignment: .top) {
+            windowTitleBar
         }
-        .toolbarBackground(.hidden, for: .windowToolbar)
         .background(
             GeometryReader { geo in
                 Color.clear
@@ -105,6 +80,37 @@ struct MainWindowView: View {
         )
         .id(state.appLanguage)
         .animation(.easeInOut(duration: 0.15), value: sidebarExpanded)
+    }
+
+    /// Title-bar controls. A SwiftUI toolbar in this window does not appear on macOS 27.
+    private var windowTitleBar: some View {
+        HStack(spacing: 10) {
+            Button {
+                sidebarExpanded.toggle()
+            } label: {
+                Image(systemName: "sidebar.leading")
+                    .font(.system(size: 13, weight: .medium))
+                    .frame(width: 18, height: 16)
+            }
+            .buttonStyle(.borderless)
+            .help(sidebarExpanded ? L10n.t("sidebar.hide") : L10n.t("sidebar.show"))
+
+            Rectangle()
+                .fill(Color.primary.opacity(0.18))
+                .frame(width: 1, height: 18)
+
+            PinDockAppIcon(size: 22)
+            Text("PinDock")
+                .font(.system(size: 13, weight: .semibold))
+
+            Spacer(minLength: 8)
+
+            PinDockStatusChip(state: state)
+        }
+        .padding(.leading, 78)
+        .padding(.trailing, 12)
+        .padding(.top, 5)
+        .frame(height: 36)
     }
 
     private var sidebar: some View {
