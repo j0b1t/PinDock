@@ -142,10 +142,10 @@ struct SettingsView: View {
                         if state.updateDownloadURL != nil {
                             Button(L10n.t("install")) { state.installAvailableUpdate() }
                                 .buttonStyle(.borderedProminent)
-                                .controlSize(.regular)
+                                .controlSize(.large)
                         }
                         Button(L10n.t("view")) { state.openReleasePage() }
-                            .controlSize(.regular)
+                            .controlSize(.large)
                     }
                 }
             }
@@ -176,7 +176,7 @@ struct SettingsView: View {
             Spacer(minLength: 6)
             Button(L10n.t("moveBack")) { state.moveBackToDefault() }
                 .buttonStyle(.borderedProminent)
-                .controlSize(.regular)
+                .controlSize(.large)
                 .frame(minHeight: 32)
                 .keyboardShortcut("d", modifiers: [.command, .shift])
         }
@@ -203,9 +203,9 @@ struct SettingsView: View {
             VStack(spacing: 6) {
                 Button(L10n.t("grant")) { state.openAccessibility() }
                     .buttonStyle(.borderedProminent)
-                    .controlSize(.regular)
+                    .controlSize(.large)
                 Button(L10n.t("retry")) { state.retryEngine() }
-                    .controlSize(.regular)
+                    .controlSize(.large)
             }
         }
         .padding(10)
@@ -258,7 +258,7 @@ struct SettingsView: View {
                 Toggle("", isOn: $state.isEnabled)
                     .toggleStyle(.switch)
                     .labelsHidden()
-                    .controlSize(.small)
+                    .controlSize(.regular)
                     .tint(PinDockColor.accent)
             }
             .background(chipFill)
@@ -374,7 +374,7 @@ struct SettingsView: View {
                     Toggle("", isOn: $state.dockAutoHide)
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .controlSize(.small)
+                        .controlSize(.regular)
                         .tint(PinDockColor.accent)
                 }
                 Divider().padding(.leading, 12)
@@ -399,7 +399,7 @@ struct SettingsView: View {
                     Toggle("", isOn: $state.restoreOnWake)
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .controlSize(.small)
+                        .controlSize(.regular)
                         .tint(PinDockColor.accent)
                 }
                 Divider().padding(.leading, 12)
@@ -407,7 +407,7 @@ struct SettingsView: View {
                     Toggle("", isOn: $state.launchAtLogin)
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .controlSize(.small)
+                        .controlSize(.regular)
                         .tint(PinDockColor.accent)
                 }
             }
@@ -435,9 +435,9 @@ struct SettingsView: View {
                         HStack(spacing: 6) {
                             Button(L10n.t("grant")) { state.openAccessibility() }
                                 .buttonStyle(.borderedProminent)
-                                .controlSize(.regular)
+                                .controlSize(.large)
                             Button(L10n.t("retry")) { state.retryEngine() }
-                                .controlSize(.regular)
+                                .controlSize(.large)
                         }
                     }
                 }
@@ -457,7 +457,7 @@ struct SettingsView: View {
                     Toggle("", isOn: $state.autoCheckForUpdates)
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .controlSize(.small)
+                        .controlSize(.regular)
                         .tint(PinDockColor.accent)
                 }
                 Divider().padding(.leading, 12)
@@ -470,27 +470,27 @@ struct SettingsView: View {
                     Toggle("", isOn: $state.autoInstallUpdates)
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .controlSize(.small)
+                        .controlSize(.regular)
                         .tint(PinDockColor.accent)
                         .disabled(!state.autoCheckForUpdates)
                 }
                 Divider().padding(.leading, 12)
                 settingsRow(L10n.t("status"), updateSubtitle) {
                     if state.isCheckingUpdate || state.isInstallingUpdate {
-                        ProgressView().controlSize(.regular)
+                        ProgressView().controlSize(.large)
                     } else if state.updateAvailable {
                         HStack(spacing: 6) {
                             if state.updateDownloadURL != nil {
                                 Button(L10n.t("install")) { state.installAvailableUpdate() }
                                     .buttonStyle(.borderedProminent)
-                                    .controlSize(.regular)
+                                    .controlSize(.large)
                             }
                             Button(L10n.t("view")) { state.openReleasePage() }
-                                .controlSize(.regular)
+                                .controlSize(.large)
                         }
                     } else {
                         Button(L10n.t("check")) { state.checkForUpdates(force: true) }
-                            .controlSize(.regular)
+                            .controlSize(.large)
                     }
                 }
             }
@@ -622,7 +622,7 @@ struct DisplayAllowRow: View {
             ))
             .toggleStyle(.switch)
             .labelsHidden()
-            .controlSize(.small)
+            .controlSize(.regular)
             .tint(PinDockColor.accent)
             .help(isAllowed ? "Allowed" : "Blocked")
 
@@ -646,8 +646,8 @@ struct DisplayAllowRow: View {
                 onSetDefault()
             }
             .buttonStyle(.bordered)
-            .controlSize(.regular)
-            .font(.system(size: 12, weight: .medium))
+            .controlSize(.large)
+            .font(.system(size: 13, weight: .medium))
             .disabled(!isAllowed || isDefault)
             .help("Status only — does not move the Dock")
         }

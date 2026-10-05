@@ -247,7 +247,7 @@ struct MainWindowView: View {
                     Toggle("", isOn: $state.isEnabled)
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .controlSize(.small)
+                        .controlSize(.regular)
                 }
                 windowRow(L10n.t("status"), showDivider: false) {
                     Text(state.statusLine)
@@ -278,6 +278,7 @@ struct MainWindowView: View {
                     Spacer()
                     Button(L10n.t("moveBack")) { state.moveBackToDefault() }
                         .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                         .keyboardShortcut("d", modifiers: [.command, .shift])
                 }
                 .padding(14)
@@ -340,7 +341,7 @@ struct MainWindowView: View {
                     Toggle("", isOn: $state.dockAutoHide)
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .controlSize(.small)
+                        .controlSize(.regular)
                 }
                 windowRow(L10n.t("moveBack"), L10n.t("moveBack.hint")) {
                     Text("⌘⇧D")
@@ -361,13 +362,13 @@ struct MainWindowView: View {
                     Toggle("", isOn: $state.restoreOnWake)
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .controlSize(.small)
+                        .controlSize(.regular)
                 }
                 windowRow(L10n.t("launchLogin"), L10n.t("launchLogin.hint"), showDivider: false) {
                     Toggle("", isOn: $state.launchAtLogin)
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .controlSize(.small)
+                        .controlSize(.regular)
                 }
             }
         }
@@ -430,7 +431,9 @@ struct MainWindowView: View {
                         HStack(spacing: 8) {
                             Button(L10n.t("grant")) { state.openAccessibility() }
                                 .buttonStyle(.borderedProminent)
+                                .controlSize(.large)
                             Button(L10n.t("retry")) { state.retryEngine() }
+                                .controlSize(.large)
                         }
                     }
                     Spacer()
@@ -479,8 +482,10 @@ struct MainWindowView: View {
                             if state.updateDownloadURL != nil {
                                 Button(L10n.t("install")) { state.installAvailableUpdate() }
                                     .buttonStyle(.borderedProminent)
+                                    .controlSize(.large)
                             }
                             Button(L10n.t("view")) { state.openReleasePage() }
+                                .controlSize(.large)
                         }
                     }
                 }
@@ -494,18 +499,18 @@ struct MainWindowView: View {
                     Toggle("", isOn: $state.autoCheckForUpdates)
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .controlSize(.small)
+                        .controlSize(.regular)
                 }
                 windowRow(L10n.t("autoInstall"), state.autoCheckForUpdates ? L10n.t("autoInstall.hint") : L10n.t("autoInstall.needCheck")) {
                     Toggle("", isOn: $state.autoInstallUpdates)
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .controlSize(.small)
+                        .controlSize(.regular)
                         .disabled(!state.autoCheckForUpdates)
                 }
                 windowRow(L10n.t("status"), L10n.t("updates.footer"), showDivider: false) {
                     if state.isCheckingUpdate || state.isInstallingUpdate {
-                        ProgressView().controlSize(.small)
+                        ProgressView().controlSize(.regular)
                     } else if state.updateAvailable {
                         Text(updateStatusLine)
                             .foregroundStyle(.secondary)
@@ -514,6 +519,7 @@ struct MainWindowView: View {
                             Text(updateStatusLine)
                                 .foregroundStyle(.secondary)
                             Button(L10n.t("check")) { state.checkForUpdates(force: true) }
+                                .controlSize(.large)
                         }
                     }
                 }
