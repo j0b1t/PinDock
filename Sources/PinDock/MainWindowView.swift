@@ -595,15 +595,28 @@ struct MainWindowView: View {
 extension View {
     /// Soft capsule used for the window title and On/Off status, same idea as 1.1.0.
     func titleBubble() -> some View {
-        padding(.horizontal, 14)
+        modifier(TitleBubbleModifier())
+    }
+}
+
+private struct TitleBubbleModifier: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, 14)
             .frame(height: 36)
             .background {
                 Capsule(style: .continuous)
                     .fill(.ultraThinMaterial)
-                    .opacity(0.55)
+                    .opacity(colorScheme == .dark ? 0.72 : 0.9)
                     .overlay {
                         Capsule(style: .continuous)
-                            .strokeBorder(Color.primary.opacity(0.14), lineWidth: 0.5)
+                            .fill(colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.62))
+                    }
+                    .overlay {
+                        Capsule(style: .continuous)
+                            .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.16 : 0.10), lineWidth: 0.5)
                     }
             }
     }

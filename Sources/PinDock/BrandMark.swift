@@ -98,7 +98,7 @@ enum PinDockColor {
     static let dock = Color(red: 1.0, green: 0.584, blue: 0.0)
 }
 
-/// Shared liquid-glass fill. Dark = charcoal HUD. Light = the same HUD without darkening.
+/// Shared liquid-glass fill. Dark stays the charcoal HUD. Light is a pale sheet, not that HUD grayed out.
 struct PinDockGlass: View {
     @Environment(\.colorScheme) private var colorScheme
     /// Popover chrome already blurs; only draw the wash so we don’t stack two materials.
@@ -108,7 +108,10 @@ struct PinDockGlass: View {
     var body: some View {
         ZStack {
             if fillMaterial {
-                GlassBackdrop(material: .hudWindow, emphasized: false)
+                GlassBackdrop(
+                    material: colorScheme == .dark ? .hudWindow : .sheet,
+                    emphasized: false
+                )
             }
             if applyWash {
                 if colorScheme == .dark {
@@ -120,8 +123,7 @@ struct PinDockGlass: View {
                         .blendMode(.plusLighter)
                 } else {
                     Rectangle()
-                        .fill(Color.black.opacity(0.10))
-                        .blendMode(.plusDarker)
+                        .fill(Color.white.opacity(0.42))
                 }
             }
         }
@@ -134,7 +136,7 @@ struct PinDockCardFill: View {
 
     var body: some View {
         Rectangle()
-            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.08))
+            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.05))
     }
 }
 
