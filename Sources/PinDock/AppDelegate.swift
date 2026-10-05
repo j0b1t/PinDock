@@ -246,6 +246,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         view.appearance = NSApp.effectiveAppearance
         view.wantsLayer = true
         view.layer?.backgroundColor = NSColor.clear.cgColor
+        view.layer?.masksToBounds = false
         guard let window = view.window else { return }
         window.isOpaque = false
         window.backgroundColor = .clear

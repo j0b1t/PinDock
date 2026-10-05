@@ -74,9 +74,10 @@ struct SettingsView: View {
             }
         }
         // Fixed size so the popover does not jump when switching Dock / Settings.
+        // Do not clip here. macOS 27 rounds the popover itself; a tighter
+        // corner left a second edge inside the system corner.
         .frame(width: panelWidth, height: Self.compactPanelSize.height)
         .background { glassBackground }
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .foregroundStyle(.primary)
         // Menu-bar panel is often not the key window — keep glass/controls looking active.
         .environment(\.controlActiveState, .key)
