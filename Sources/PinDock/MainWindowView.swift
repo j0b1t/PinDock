@@ -46,6 +46,10 @@ struct MainWindowView: View {
     }
 
     @State private var sidebarExpanded = true
+    /// Vertical center of the close/minimize/zoom buttons, measured from the top of the window.
+    @State private var trafficCenter: CGFloat = 20
+    /// Space to the right of those buttons.
+    @State private var trafficTrailing: CGFloat = 78
 
     private var sidebarWidth: CGFloat { sidebarExpanded ? 200 : 56 }
 
@@ -59,14 +63,22 @@ struct MainWindowView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .padding(10)
-        .padding(.top, 28)
+        .padding(.top, max(trafficCenter + 8, 28))
         .background {
             PinDockGlass()
                 .ignoresSafeArea()
         }
         .frame(minWidth: 560, minHeight: 400)
+        .ignoresSafeArea(edges: .top)
         .overlay(alignment: .top) {
             windowTitleBar
+                .padding(.top, max(trafficCenter - 14, 0))
+        }
+        .background {
+            TrafficLightAnchor { center, trailing in
+                if abs(trafficCenter - center) > 0.5 { trafficCenter = center }
+                if abs(trafficTrailing - trailing) > 0.5 { trafficTrailing = trailing }
+            }
         }
         .background(
             GeometryReader { geo in
@@ -107,10 +119,35 @@ struct MainWindowView: View {
 
             PinDockStatusChip(state: state)
         }
-        .padding(.leading, 78)
+        .padding(.leading, trafficTrailing)
         .padding(.trailing, 12)
-        .padding(.top, 5)
-        .frame(height: 36)
+        .frame(height: 28)
+    }
+
+    /// Reads the macOS close/minimize/zoom buttons so the title row shares their height.
+    private struct TrafficLightAnchor: NSViewRepresentable {
+        var onUpdate: (CGFloat, CGFloat) -> Void
+
+        func makeNSView(context: Context) -> NSView {
+            let view = NSView(frame: .zero)
+            DispatchQueue.main.async { report(view) }
+            return view
+        }
+
+        func updateNSView(_ view: NSView, context: Context) {
+            DispatchQueue.main.async { report(view) }
+        }
+
+        private func report(_ view: NSView) {
+            guard let window = view.window,
+                  let content = window.contentView,
+                  let button = window.standardWindowButton(.zoomButton)
+                    ?? window.standardWindowButton(.closeButton) else { return }
+            let frame = button.convert(button.bounds, to: content)
+            let center = content.bounds.height - frame.midY
+            let trailing = frame.maxX + 12
+            onUpdate(center, trailing)
+        }
     }
 
     private var sidebar: some View {
