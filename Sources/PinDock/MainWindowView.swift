@@ -64,16 +64,17 @@ struct MainWindowView: View {
                 .ignoresSafeArea()
         }
         .frame(minWidth: 560, minHeight: 400)
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
+        .safeAreaInset(edge: .top, spacing: 0) {
+            HStack(spacing: 10) {
                 titleBubble
-            }
-            ToolbarItem(placement: .primaryAction) {
+                Spacer(minLength: 8)
                 PinDockStatusChip(state: state)
                     .titleBubble()
             }
+            .padding(.horizontal, 12)
+            .padding(.top, 6)
+            .padding(.bottom, 8)
         }
-        .toolbarBackground(.hidden, for: .windowToolbar)
         .background(
             GeometryReader { geo in
                 Color.clear
