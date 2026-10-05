@@ -49,6 +49,7 @@ struct SettingsView: View {
                 Text(L10n.t("tab.settings")).tag(CompactTab.settings)
             }
             .pickerStyle(.segmented)
+            .controlSize(.large)
             .padding(.horizontal, 14)
             .padding(.top, 4)
             .padding(.bottom, 10)
@@ -333,6 +334,7 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .controlSize(.large)
                     .labelsHidden()
                     .fixedSize()
                 }
@@ -344,6 +346,7 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .controlSize(.large)
                     .labelsHidden()
                     .fixedSize()
                 }
@@ -355,6 +358,7 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .controlSize(.large)
                     .labelsHidden()
                     .fixedSize()
                 }
@@ -391,6 +395,7 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .controlSize(.large)
                     .labelsHidden()
                     .fixedSize()
                 }

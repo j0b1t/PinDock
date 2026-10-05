@@ -355,6 +355,7 @@ struct MainWindowView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .controlSize(.large)
                     .labelsHidden()
                     .fixedSize()
                 }
@@ -386,6 +387,7 @@ struct MainWindowView: View {
                         Text(L10n.t("present.both")).tag(AppPresentation.both)
                     }
                     .pickerStyle(.menu)
+                    .controlSize(.large)
                     .labelsHidden()
                     .fixedSize()
                 }
@@ -396,6 +398,7 @@ struct MainWindowView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .controlSize(.large)
                     .labelsHidden()
                     .fixedSize()
                 }
@@ -406,6 +409,7 @@ struct MainWindowView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .controlSize(.large)
                     .labelsHidden()
                     .fixedSize()
                 }
