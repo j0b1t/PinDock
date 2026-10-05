@@ -29,7 +29,7 @@
 ---
 
 <p align="center">
-  <img src="docs/assets/walkthrough-menubar.gif" width="360" alt="PinDock 1.1.0 — menu bar walkthrough">
+  <img src="docs/assets/walkthrough-menubar.gif" width="360" alt="PinDock 1.1.1 — menu bar walkthrough">
 </p>
 
 <p align="center">
@@ -37,9 +37,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-popover.png" width="280" alt="PinDock 1.1.0 — menu bar Dock tab, dark">
+  <img src="docs/assets/screenshot-popover.png" width="280" alt="PinDock 1.1.1 — menu bar Dock tab, dark">
   &nbsp;
-  <img src="docs/assets/screenshot-popover-light.png" width="280" alt="PinDock 1.1.0 — menu bar Dock tab, light">
+  <img src="docs/assets/screenshot-popover-light.png" width="280" alt="PinDock 1.1.1 — menu bar Dock tab, light">
 </p>
 
 <p align="center">
@@ -47,9 +47,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-settings.png" width="280" alt="PinDock 1.1.0 — menu bar Settings tab, dark">
+  <img src="docs/assets/screenshot-settings.png" width="280" alt="PinDock 1.1.1 — menu bar Settings tab, dark">
   &nbsp;
-  <img src="docs/assets/screenshot-settings-light.png" width="280" alt="PinDock 1.1.0 — menu bar Settings tab, light">
+  <img src="docs/assets/screenshot-settings-light.png" width="280" alt="PinDock 1.1.1 — menu bar Settings tab, light">
 </p>
 
 <p align="center">
@@ -57,7 +57,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/walkthrough-window.gif" width="720" alt="PinDock 1.1.0 — app window walkthrough">
+  <img src="docs/assets/walkthrough-window.gif" width="720" alt="PinDock 1.1.1 — app window walkthrough">
 </p>
 
 <p align="center">
@@ -65,7 +65,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-window.png" width="680" alt="PinDock 1.1.0 — app window, dark">
+  <img src="docs/assets/screenshot-window.png" width="680" alt="PinDock 1.1.1 — app window, dark">
 </p>
 
 <p align="center">
@@ -73,7 +73,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-window-light.png" width="680" alt="PinDock 1.1.0 — app window, light">
+  <img src="docs/assets/screenshot-window-light.png" width="680" alt="PinDock 1.1.1 — app window, light">
 </p>
 
 <p align="center">
@@ -100,7 +100,7 @@ PinDock keeps it where **you** want it — quietly, with no account and no ads.
 <h2 id="features">✨ Features</h2>
 
 - 🔒 **Lock** — soft‑blocks other displays so the Dock doesn’t jump  
-- 🏠 **Default display** — *Set as default* never moves the Dock by itself  
+- 🏠 **Default display** — remembered for each screen setup (MacBook alone, or with a monitor plugged in)  
 - ⇧ **Shift + edge** — intentional native Dock moves  
 - 🗺️ **Display map** — click a screen to move the Dock there  
 - ↩️ **Move Back** — button or **⌘⇧D** to the default display  

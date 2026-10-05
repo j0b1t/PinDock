@@ -9,6 +9,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     private var mainWindow: NSWindow?
     private var popoverLocalClickMonitor: Any?
     private var popoverGlobalClickMonitor: Any?
+    /// README screenshots only. Keeps the popover open while we capture.
+    private var uiPreviewMode = false
 
     /// Last known display IDs — used so we only auto-restore on real plug/unplug.
     private var knownDisplayIDs: Set<UInt32> = []
@@ -43,12 +45,54 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             scheduleLoginRestore()
         }
 
-        // Maintainer helper: `PinDock --ui-preview` opens the panel as a window for screenshots.
-        // Engine is started above so the UI matches a real session (no false banners).
-        if CommandLine.arguments.contains("--ui-preview") {
+        // Screenshot helpers. Normal launch never takes these paths.
+        //   --ui-preview-popover / --ui-preview-popover-settings / --ui-demo-menubar
+        //   --ui-preview-window / --ui-demo-window
+        let args = CommandLine.arguments
+        if args.contains("--ui-preview-popover")
+            || args.contains("--ui-preview-popover-settings")
+            || args.contains("--ui-demo-menubar") {
+            uiPreviewMode = true
+            NSApp.setActivationPolicy(.accessory)
+            AppState.shared.refresh()
+            setupStatusItem()
+            setupPopover()
+            updateStatusIcon()
+            let wantSettings = args.contains("--ui-preview-popover-settings")
+            let demo = args.contains("--ui-demo-menubar")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                guard let self, let button = self.statusItem?.button else { return }
+                self.showPopover(relativeTo: button)
+                if wantSettings {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        NotificationCenter.default.post(name: .pindockPreviewTab, object: "settings")
+                    }
+                }
+                if demo { self.runMenubarDemo() }
+            }
+            return
+        }
+        if args.contains("--ui-preview") || args.contains("--ui-preview-settings") {
+            uiPreviewMode = true
             NSApp.setActivationPolicy(.regular)
             AppState.shared.refresh()
             showUIPreviewWindow()
+            return
+        }
+        if args.contains("--ui-preview-window") || args.contains("--ui-demo-window") {
+            uiPreviewMode = true
+            NSApp.setActivationPolicy(.regular)
+            AppState.shared.refresh()
+            showMainWindow()
+            if let window = mainWindow {
+                var frame = window.frame
+                frame.size = Self.defaultWindowSize
+                window.setFrame(frame, display: true)
+                window.center()
+            }
+            if args.contains("--ui-demo-window") {
+                runWindowDemo()
+            }
             return
         }
 
@@ -140,6 +184,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     func applicationDidResignActive(_ notification: Notification) {
+        if uiPreviewMode { return }
         popover?.performClose(nil)
     }
 
@@ -236,7 +281,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         // Do not NSApp.activate — that pulls PinDock to the foreground.
         popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         preparePopoverWindow()
-        installPopoverDismissMonitors()
+        if !uiPreviewMode {
+            installPopoverDismissMonitors()
+        }
+    }
+
+    private func runMenubarDemo() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            NotificationCenter.default.post(name: .pindockPreviewTab, object: "settings")
+        }
+        let scrollSteps: [(TimeInterval, String)] = [
+            (2.4, "behavior"),
+            (3.6, "permissions"),
+            (4.8, "updates"),
+            (6.0, "footer"),
+            (7.2, "appearance"),
+        ]
+        for (delay, section) in scrollSteps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                NotificationCenter.default.post(name: .pindockPreviewScroll, object: section)
+            }
+        }
+    }
+
+    private func runWindowDemo() {
+        let steps: [(TimeInterval, String)] = [
+            (1.4, "behavior"),
+            (3.0, "appearance"),
+            (4.6, "displays"),
+        ]
+        for (delay, pane) in steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                NotificationCenter.default.post(name: .pindockPreviewPane, object: pane)
+            }
+        }
     }
 
     /// Keep the system bubble + arrow. Don’t steal key/activation from the front app.
