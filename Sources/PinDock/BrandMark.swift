@@ -50,8 +50,6 @@ struct PinDockStatusChip: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.primary)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 7)
         .help(state.statusLine)
     }
 }
