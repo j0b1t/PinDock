@@ -100,14 +100,19 @@ struct SettingsView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            PinDockMark(size: 26)
-            Text("PinDock")
-                .font(.system(size: 14, weight: .semibold))
+            HStack(spacing: 8) {
+                PinDockAppIcon(size: 22)
+                Text("PinDock")
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            .titleBubble()
             Spacer(minLength: 8)
             PinDockStatusChip(state: state)
+                .titleBubble()
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(.top, 10)
+        .padding(.bottom, 6)
     }
 
     // MARK: - Banners
@@ -152,7 +157,7 @@ struct SettingsView: View {
         }
         .padding(10)
         .background(Color.accentColor.opacity(0.12))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private var moveBackBanner: some View {
@@ -178,7 +183,7 @@ struct SettingsView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
         .background(Color.accentColor.opacity(0.12))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private var accessibilityBanner: some View {
@@ -205,9 +210,9 @@ struct SettingsView: View {
         }
         .padding(10)
         .background(Color.orange.opacity(0.14))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .strokeBorder(Color.orange.opacity(0.35), lineWidth: 1)
         )
     }
@@ -236,7 +241,7 @@ struct SettingsView: View {
         }
         .padding(10)
         .background(iconColor.opacity(0.12))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     // MARK: - Enable PinDock
@@ -257,7 +262,7 @@ struct SettingsView: View {
                     .tint(PinDockColor.accent)
             }
             .background(chipFill)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
 
@@ -267,7 +272,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 6) {
             sectionLabel(L10n.t("pane.displays"), systemImage: "display.2")
             Text(L10n.t("tapDisplay"))
-                .font(.system(size: 10))
+                .font(.system(size: 13))
                 .foregroundStyle(.secondary)
 
             DisplayMapView(
@@ -282,7 +287,7 @@ struct SettingsView: View {
             .frame(height: 110)
             .padding(8)
             .background(chipFill)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
 
@@ -311,7 +316,7 @@ struct SettingsView: View {
                 }
             }
             .background(chipFill)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
 
@@ -355,7 +360,7 @@ struct SettingsView: View {
                 }
             }
             .background(chipFill)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
 
@@ -407,7 +412,7 @@ struct SettingsView: View {
                 }
             }
             .background(chipFill)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
 
@@ -438,7 +443,7 @@ struct SettingsView: View {
                 }
             }
             .background(chipFill)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
 
@@ -490,7 +495,7 @@ struct SettingsView: View {
                 }
             }
             .background(chipFill)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
 
@@ -532,7 +537,7 @@ struct SettingsView: View {
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(chipFill)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
     }
 
@@ -576,8 +581,8 @@ struct SettingsView: View {
             trailing()
                 .layoutPriority(1)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 
     private func sectionLabel(_ text: String, systemImage: String? = nil) -> some View {
@@ -594,7 +599,7 @@ struct SettingsView: View {
     }
 
     private var chipFill: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
             .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.08))
     }
 }

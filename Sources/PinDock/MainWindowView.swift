@@ -572,7 +572,7 @@ struct MainWindowView: View {
     }
 }
 
-private extension View {
+extension View {
     /// Soft capsule used for the window title and On/Off status, same idea as 1.1.0.
     func titleBubble() -> some View {
         padding(.horizontal, 12)
