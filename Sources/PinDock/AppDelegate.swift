@@ -350,9 +350,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         func restyle(_ view: NSView) {
             if view === hostingView { return }
             if let effect = view as? NSVisualEffectView {
-                effect.material = .hudWindow
+                let light = NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) != .darkAqua
+                effect.material = light ? .popover : .hudWindow
                 effect.blendingMode = .behindWindow
-                effect.isEmphasized = false
+                effect.isEmphasized = light
+                effect.appearance = light ? NSAppearance(named: .aqua) : nil
                 if ancestorIDs.contains(ObjectIdentifier(effect)) {
                     // Don’t stack chrome on PinDockGlass — that made Light too bright / Dark too dark.
                     effect.state = .inactive

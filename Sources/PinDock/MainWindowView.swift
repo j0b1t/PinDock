@@ -359,15 +359,11 @@ struct MainWindowView: View {
                         .foregroundStyle(.secondary)
                 }
                 windowRow(L10n.t("modifier"), L10n.t("modifier.hint")) {
-                    Picker("", selection: $state.modifierKey) {
-                        ForEach(ModifierKey.allCases) { key in
-                            Text(key.localizedLabel).tag(key)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .controlSize(.large)
-                    .labelsHidden()
-                    .fixedSize()
+                    PinDockMenuPicker(
+                        selection: $state.modifierKey,
+                        options: Array(ModifierKey.allCases),
+                        title: { $0.localizedLabel }
+                    )
                 }
                 windowRow(L10n.t("restoreWake"), L10n.t("restoreWake.hint")) {
                     Toggle("", isOn: $state.restoreOnWake)
@@ -391,37 +387,25 @@ struct MainWindowView: View {
         page(title: L10n.t("pane.appearance"), subtitle: L10n.t("appearance.subtitle")) {
             glassCard {
                 windowRow(L10n.t("showPinDock"), state.appPresentation.localizedSubtitle) {
-                    Picker("", selection: $state.appPresentation) {
-                        Text(L10n.t("present.menuBar")).tag(AppPresentation.menuBar)
-                        Text(L10n.t("present.window")).tag(AppPresentation.window)
-                        Text(L10n.t("present.both")).tag(AppPresentation.both)
-                    }
-                    .pickerStyle(.menu)
-                    .controlSize(.large)
-                    .labelsHidden()
-                    .fixedSize()
+                    PinDockMenuPicker(
+                        selection: $state.appPresentation,
+                        options: Array(AppPresentation.allCases),
+                        title: { $0.localizedLabel }
+                    )
                 }
                 windowRow(L10n.t("theme"), L10n.t("theme.hint")) {
-                    Picker("", selection: $state.appColorScheme) {
-                        ForEach(AppColorScheme.allCases) { scheme in
-                            Text(scheme.localizedLabel).tag(scheme)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .controlSize(.large)
-                    .labelsHidden()
-                    .fixedSize()
+                    PinDockMenuPicker(
+                        selection: $state.appColorScheme,
+                        options: Array(AppColorScheme.allCases),
+                        title: { $0.localizedLabel }
+                    )
                 }
                 windowRow(L10n.t("language"), L10n.t("language.hint"), showDivider: false) {
-                    Picker("", selection: $state.appLanguage) {
-                        ForEach(AppLanguage.allCases) { lang in
-                            Text(lang.displayName).tag(lang)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .controlSize(.large)
-                    .labelsHidden()
-                    .fixedSize()
+                    PinDockMenuPicker(
+                        selection: $state.appLanguage,
+                        options: Array(AppLanguage.allCases),
+                        title: { $0.displayName }
+                    )
                 }
             }
         }
@@ -447,7 +431,7 @@ struct MainWindowView: View {
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.large)
                             Button(L10n.t("retry")) { state.retryEngine() }
-                                .controlSize(.large)
+                                .pindockBorderedButton()
                         }
                     }
                     Spacer()
@@ -499,7 +483,7 @@ struct MainWindowView: View {
                                     .controlSize(.large)
                             }
                             Button(L10n.t("view")) { state.openReleasePage() }
-                                .controlSize(.large)
+                                .pindockBorderedButton()
                         }
                     }
                 }
@@ -533,7 +517,7 @@ struct MainWindowView: View {
                             Text(updateStatusLine)
                                 .foregroundStyle(.secondary)
                             Button(L10n.t("check")) { state.checkForUpdates(force: true) }
-                                .controlSize(.large)
+                                .pindockBorderedButton()
                         }
                     }
                 }
@@ -609,10 +593,10 @@ private struct TitleBubbleModifier: ViewModifier {
             .background {
                 Capsule(style: .continuous)
                     .fill(.ultraThinMaterial)
-                    .opacity(colorScheme == .dark ? 0.72 : 0.85)
+                    .opacity(colorScheme == .dark ? 0.72 : 0.78)
                     .overlay {
                         Capsule(style: .continuous)
-                            .fill(colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.28))
+                            .fill(colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.18))
                     }
                     .overlay {
                         Capsule(style: .continuous)

@@ -48,12 +48,24 @@ struct SettingsView: View {
     private var compactBody: some View {
         VStack(spacing: 0) {
             header
-            Picker("", selection: $compactTab) {
-                Text(L10n.t("tab.dock")).tag(CompactTab.dock)
-                Text(L10n.t("tab.settings")).tag(CompactTab.settings)
+            Group {
+                if colorScheme == .dark {
+                    Picker("", selection: $compactTab) {
+                        Text(L10n.t("tab.dock")).tag(CompactTab.dock)
+                        Text(L10n.t("tab.settings")).tag(CompactTab.settings)
+                    }
+                    .pickerStyle(.segmented)
+                    .controlSize(.large)
+                } else {
+                    PinDockLightSegments(
+                        selection: $compactTab,
+                        options: [
+                            (.dock, L10n.t("tab.dock")),
+                            (.settings, L10n.t("tab.settings"))
+                        ]
+                    )
+                }
             }
-            .pickerStyle(.segmented)
-            .controlSize(.large)
             .padding(.horizontal, 14)
             .padding(.top, 4)
             .padding(.bottom, 10)
@@ -158,7 +170,7 @@ struct SettingsView: View {
                                 .controlSize(.large)
                         }
                         Button(L10n.t("view")) { state.openReleasePage() }
-                            .controlSize(.large)
+                            .pindockBorderedButton()
                     }
                 }
             }
@@ -218,7 +230,7 @@ struct SettingsView: View {
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                 Button(L10n.t("retry")) { state.retryEngine() }
-                    .controlSize(.large)
+                    .pindockBorderedButton()
             }
         }
         .padding(10)
@@ -340,39 +352,27 @@ struct SettingsView: View {
             sectionLabel(L10n.t("pane.appearance"), systemImage: "macwindow")
             VStack(spacing: 0) {
                 settingsRow(L10n.t("showPinDock"), state.appPresentation.localizedSubtitle) {
-                    Picker("", selection: $state.appPresentation) {
-                        ForEach(AppPresentation.allCases) { mode in
-                            Text(mode.localizedLabel).tag(mode)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .controlSize(.large)
-                    .labelsHidden()
-                    .fixedSize()
+                    PinDockMenuPicker(
+                        selection: $state.appPresentation,
+                        options: Array(AppPresentation.allCases),
+                        title: { $0.localizedLabel }
+                    )
                 }
                 Divider().padding(.leading, 12)
                 settingsRow(L10n.t("theme"), L10n.t("theme.hint")) {
-                    Picker("", selection: $state.appColorScheme) {
-                        ForEach(AppColorScheme.allCases) { scheme in
-                            Text(scheme.localizedLabel).tag(scheme)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .controlSize(.large)
-                    .labelsHidden()
-                    .fixedSize()
+                    PinDockMenuPicker(
+                        selection: $state.appColorScheme,
+                        options: Array(AppColorScheme.allCases),
+                        title: { $0.localizedLabel }
+                    )
                 }
                 Divider().padding(.leading, 12)
                 settingsRow(L10n.t("language"), L10n.t("language.hint")) {
-                    Picker("", selection: $state.appLanguage) {
-                        ForEach(AppLanguage.allCases) { lang in
-                            Text(lang.displayName).tag(lang)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .controlSize(.large)
-                    .labelsHidden()
-                    .fixedSize()
+                    PinDockMenuPicker(
+                        selection: $state.appLanguage,
+                        options: Array(AppLanguage.allCases),
+                        title: { $0.displayName }
+                    )
                 }
             }
             .background(chipFill)
@@ -401,15 +401,11 @@ struct SettingsView: View {
                 }
                 Divider().padding(.leading, 12)
                 settingsRow(L10n.t("modifier"), L10n.t("modifier.hint")) {
-                    Picker("", selection: $state.modifierKey) {
-                        ForEach(ModifierKey.allCases) { key in
-                            Text(key.localizedLabel).tag(key)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .controlSize(.large)
-                    .labelsHidden()
-                    .fixedSize()
+                    PinDockMenuPicker(
+                        selection: $state.modifierKey,
+                        options: Array(ModifierKey.allCases),
+                        title: { $0.localizedLabel }
+                    )
                 }
                 Divider().padding(.leading, 12)
                 settingsRow(L10n.t("restoreWake"), L10n.t("restoreWake.hint")) {
@@ -454,7 +450,7 @@ struct SettingsView: View {
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.large)
                             Button(L10n.t("retry")) { state.retryEngine() }
-                                .controlSize(.large)
+                                .pindockBorderedButton()
                         }
                     }
                 }
@@ -503,11 +499,11 @@ struct SettingsView: View {
                                     .controlSize(.large)
                             }
                             Button(L10n.t("view")) { state.openReleasePage() }
-                                .controlSize(.large)
+                                .pindockBorderedButton()
                         }
                     } else {
                         Button(L10n.t("check")) { state.checkForUpdates(force: true) }
-                            .controlSize(.large)
+                            .pindockBorderedButton()
                     }
                 }
             }
@@ -617,7 +613,7 @@ struct SettingsView: View {
 
     private var chipFill: some View {
         RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.28))
+            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.38))
     }
 }
 
@@ -662,8 +658,7 @@ struct DisplayAllowRow: View {
             Button(isDefault ? L10n.t("default") : L10n.t("setDefault")) {
                 onSetDefault()
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
+            .pindockBorderedButton()
             .font(.system(size: 13, weight: .medium))
             .disabled(!isAllowed || isDefault)
             .help("Status only — does not move the Dock")

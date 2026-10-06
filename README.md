@@ -29,7 +29,7 @@
 ---
 
 <p align="center">
-  <img src="docs/assets/1.1.1/walkthrough-menubar.gif" width="360" alt="PinDock 1.1.1 — menu bar walkthrough">
+  <img src="docs/assets/1.1.2/walkthrough-menubar.gif" width="360" alt="PinDock 1.1.2 — menu bar walkthrough">
 </p>
 
 <p align="center">
@@ -37,9 +37,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/1.1.1/screenshot-popover.png" width="280" alt="PinDock 1.1.1 — menu bar Dock tab, dark">
+  <img src="docs/assets/1.1.2/screenshot-popover.png" width="280" alt="PinDock 1.1.2 — menu bar Dock tab, dark">
   &nbsp;
-  <img src="docs/assets/1.1.1/screenshot-popover-light.png" width="280" alt="PinDock 1.1.1 — menu bar Dock tab, light">
+  <img src="docs/assets/1.1.2/screenshot-popover-light.png" width="280" alt="PinDock 1.1.2 — menu bar Dock tab, light">
 </p>
 
 <p align="center">
@@ -47,9 +47,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/1.1.1/screenshot-settings.png" width="280" alt="PinDock 1.1.1 — menu bar Settings tab, dark">
+  <img src="docs/assets/1.1.2/screenshot-settings.png" width="280" alt="PinDock 1.1.2 — menu bar Settings tab, dark">
   &nbsp;
-  <img src="docs/assets/1.1.1/screenshot-settings-light.png" width="280" alt="PinDock 1.1.1 — menu bar Settings tab, light">
+  <img src="docs/assets/1.1.2/screenshot-settings-light.png" width="280" alt="PinDock 1.1.2 — menu bar Settings tab, light">
 </p>
 
 <p align="center">
@@ -57,7 +57,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/1.1.1/walkthrough-window.gif" width="720" alt="PinDock 1.1.1 — app window walkthrough">
+  <img src="docs/assets/1.1.2/walkthrough-window.gif" width="720" alt="PinDock 1.1.2 — app window walkthrough">
 </p>
 
 <p align="center">
@@ -65,7 +65,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/1.1.1/screenshot-window.png" width="680" alt="PinDock 1.1.1 — app window, dark">
+  <img src="docs/assets/1.1.2/screenshot-window.png" width="680" alt="PinDock 1.1.2 — app window, dark">
 </p>
 
 <p align="center">
@@ -73,7 +73,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/1.1.1/screenshot-window-light.png" width="680" alt="PinDock 1.1.1 — app window, light">
+  <img src="docs/assets/1.1.2/screenshot-window-light.png" width="680" alt="PinDock 1.1.2 — app window, light">
 </p>
 
 <p align="center">
@@ -82,11 +82,12 @@
 
 ---
 
-## What’s new in 1.1.1
+## What’s new in 1.1.2
 
-- **Default per screen setup.** Unplug the monitor and the MacBook default comes back. Plug it in again and the default you set for that setup returns, including after a restart.
-- **Menu bar and app window** share the same bubbles, type size, card corners, and larger tabs, dropdowns, buttons, and toggles.
-- Screenshots and walkthroughs below are from this version.
+- **Light mode is a pale glass.** The panel stays see-through and light. Dark stays the charcoal HUD.
+- **Dropdowns and buttons** are the same size in both themes, with the same blue arrow. Light fields stay clear instead of a solid white slab.
+- **Default per screen setup** (from 1.1.1) is unchanged: unplug and the MacBook default comes back; plug in again and that setup’s default returns.
+- Screenshots and walkthroughs below are from 1.1.2.
 
 ---
 

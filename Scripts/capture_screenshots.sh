@@ -12,7 +12,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APP="${PINDOCK_APP:-/Applications/PinDock.app}"
 BIN="${APP}/Contents/MacOS/PinDock"
-OUT="${ROOT}/docs/assets"
+OUT="${ROOT}/docs/assets/1.1.2"
 DOMAIN="com.github.pindock.PinDock"
 
 if [[ ! -x "${BIN}" ]]; then
@@ -49,7 +49,7 @@ WINID_SWIFT="${TMP}/winid.swift"
 WINID_BIN="${TMP}/winid"
 cat > "${WINID_SWIFT}" << 'SWIFT'
 import Cocoa
-let infos = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+let infos = CGWindowListCopyWindowInfo([.optionAll], kCGNullWindowID) as? [[String: Any]] ?? []
 var best: (id: Int, area: CGFloat)?
 for info in infos {
     guard let name = info[kCGWindowOwnerName as String] as? String, name == "PinDock" else { continue }

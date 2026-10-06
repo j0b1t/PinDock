@@ -69,25 +69,28 @@ struct PinDockAppIcon: View {
     }
 }
 
-/// Desktop shows through — Apple-style translucent gray, not a flat fill.
+/// Desktop shows through. Dark uses the HUD. Light forces Aqua so the frost stays pale.
 struct GlassBackdrop: NSViewRepresentable {
     var material: NSVisualEffectView.Material = .underWindowBackground
     var emphasized: Bool = true
+    var appearance: NSAppearance.Name? = nil
 
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
-        view.material = material
-        view.blendingMode = .behindWindow
-        view.state = .active
-        view.isEmphasized = emphasized
+        configure(view)
         return view
     }
 
     func updateNSView(_ view: NSVisualEffectView, context: Context) {
+        configure(view)
+    }
+
+    private func configure(_ view: NSVisualEffectView) {
         view.material = material
-        view.isEmphasized = emphasized
-        view.state = .active
         view.blendingMode = .behindWindow
+        view.state = .active
+        view.isEmphasized = emphasized
+        view.appearance = appearance.flatMap { NSAppearance(named: $0) }
     }
 }
 
@@ -98,7 +101,8 @@ enum PinDockColor {
     static let dock = Color(red: 1.0, green: 0.584, blue: 0.0)
 }
 
-/// Shared liquid-glass fill. Dark stays the charcoal HUD. Light is a pale sheet, not that HUD grayed out.
+/// Shared liquid-glass fill. Dark stays the charcoal HUD.
+/// Light is a pale popover frost: the material tints light, so a dark desktop does not turn it gray, and the blur stays visible.
 struct PinDockGlass: View {
     @Environment(\.colorScheme) private var colorScheme
     /// Popover chrome already blurs; only draw the wash so we don’t stack two materials.
@@ -108,10 +112,11 @@ struct PinDockGlass: View {
     var body: some View {
         ZStack {
             if fillMaterial {
-                GlassBackdrop(
-                    material: colorScheme == .dark ? .hudWindow : .underWindowBackground,
-                    emphasized: false
-                )
+                if colorScheme == .dark {
+                    GlassBackdrop(material: .hudWindow, emphasized: false)
+                } else {
+                    GlassBackdrop(material: .popover, emphasized: true, appearance: .aqua)
+                }
             }
             if applyWash {
                 if colorScheme == .dark {
@@ -122,9 +127,9 @@ struct PinDockGlass: View {
                         .fill(Color.white.opacity(0.08))
                         .blendMode(.plusLighter)
                 } else {
-                    // Light veil only. The blur underneath stays visible.
+                    // Thin white lift. The popover material already carries the light tint.
                     Rectangle()
-                        .fill(Color.white.opacity(0.22))
+                        .fill(Color.white.opacity(0.10))
                 }
             }
         }
@@ -137,7 +142,7 @@ struct PinDockCardFill: View {
 
     var body: some View {
         Rectangle()
-            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.28))
+            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.38))
     }
 }
 
