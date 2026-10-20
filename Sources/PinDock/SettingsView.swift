@@ -36,11 +36,6 @@ struct SettingsView: View {
 
     private var panelWidth: CGFloat { compact ? Self.compactPanelWidth : 420 }
 
-    private var isLiquidGlass: Bool {
-        if #available(macOS 26.0, *) { return true }
-        return false
-    }
-
     /// Exact Dock-page length, capped so the panel stays on the menu-bar screen.
     private var compactHeight: CGFloat? {
         let raw = chromeHeight + dockBodyHeight
@@ -114,24 +109,13 @@ struct SettingsView: View {
     }
 
     private var menuTabs: some View {
-        Group {
-            if colorScheme == .dark || isLiquidGlass {
-                Picker("", selection: $compactTab) {
-                    Text(L10n.t("tab.dock")).tag(CompactTab.dock)
-                    Text(L10n.t("tab.settings")).tag(CompactTab.settings)
-                }
-                .pickerStyle(.segmented)
-                .controlSize(.large)
-            } else {
-                PinDockLightSegments(
-                    selection: $compactTab,
-                    options: [
-                        (.dock, L10n.t("tab.dock")),
-                        (.settings, L10n.t("tab.settings"))
-                    ]
-                )
-            }
-        }
+        PinDockGlassSegments(
+            selection: $compactTab,
+            options: [
+                (.dock, L10n.t("tab.dock")),
+                (.settings, L10n.t("tab.settings"))
+            ]
+        )
         .padding(.horizontal, 14)
         .padding(.top, 4)
         .padding(.bottom, 10)

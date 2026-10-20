@@ -81,42 +81,67 @@ private struct PopupButton<Selection: Hashable>: NSViewRepresentable {
     }
 }
 
-/// Dock / Settings switch. Dark keeps the system segments. Light uses a clear track instead of a solid white pill.
-struct PinDockLightSegments<Selection: Hashable>: View {
+/// Dock / Settings switch. The selected segment is a light glass chip on a quiet track.
+/// It slides with the same critically damped spring as the rest of PinDock.
+struct PinDockGlassSegments<Selection: Hashable>: View {
     @Binding var selection: Selection
     var options: [(Selection, String)]
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @Namespace private var selectionSpace
 
     var body: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 3) {
             ForEach(Array(options.enumerated()), id: \.offset) { _, option in
                 let on = option.0 == selection
                 Button {
-                    selection = option.0
+                    if reduceMotion {
+                        selection = option.0
+                    } else {
+                        withAnimation(PinDockMotion.settle) {
+                            selection = option.0
+                        }
+                    }
                 } label: {
                     Text(option.1)
                         .font(.system(size: 13, weight: on ? .semibold : .medium))
                         .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
+                        .padding(.vertical, 8)
                         .background {
                             if on {
-                                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                                    .fill(Color.white.opacity(0.38))
-                                    .overlay {
-                                        RoundedRectangle(cornerRadius: 7, style: .continuous)
-                                            .strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5)
-                                    }
+                                segmentGlass
+                                    .matchedGeometryEffect(id: "segment", in: selectionSpace)
                             }
                         }
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(SegmentPressStyle())
             }
         }
         .padding(3)
         .background {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
                 .fill(Color.primary.opacity(0.06))
         }
+    }
+
+    @ViewBuilder
+    private var segmentGlass: some View {
+        if #available(macOS 26.0, *), colorScheme == .dark {
+            // Light glass chip on the dark plate. A second light glass on the pale plate turns solid white.
+            LiquidGlassBackdrop(clear: true, cornerRadius: 8)
+        } else {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color.primary.opacity(colorScheme == .dark ? 0.14 : 0.08))
+        }
+    }
+}
+
+private struct SegmentPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
