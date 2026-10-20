@@ -360,6 +360,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             panel.makeKey()
         }
         matchPopoverChrome(hostingView: view, in: window)
+        if #available(macOS 26.0, *) {
+            clearPopoverFrameFill(of: window)
+        }
+    }
+
+    /// The system popover paints its own fill behind our glass, so the menu bar
+    /// looks flatter than the app window. Stop that fill and let Liquid Glass show.
+    private func clearPopoverFrameFill(of window: NSWindow) {
+        guard let frameView = window.contentView?.superview else { return }
+        frameView.wantsLayer = true
+        frameView.layer?.contents = nil
+        frameView.layer?.backgroundColor = NSColor.clear.cgColor
+        frameView.layer?.isOpaque = false
+        frameView.layerContentsRedrawPolicy = .never
     }
 
     private func matchPopoverChrome(hostingView: NSView, in window: NSWindow) {

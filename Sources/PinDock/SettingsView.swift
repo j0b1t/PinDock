@@ -690,8 +690,9 @@ struct SettingsView: View {
         .foregroundStyle(.primary)
     }
 
+    /// Same clear-glass groups as the app window’s sidebar and detail.
     private var chipFill: some View {
-        PinDockCardFill()
+        PinDockGlass(role: .group)
     }
 }
 
