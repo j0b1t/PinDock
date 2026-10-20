@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     private var popoverGlobalClickMonitor: Any?
     /// README screenshots only. Keeps the popover open while we capture.
     private var uiPreviewMode = false
+    private var popoverHeightObserver: NSObjectProtocol?
 
     /// Last known display IDs — used so we only auto-restore on real plug/unplug.
     private var knownDisplayIDs: Set<UInt32> = []
@@ -253,13 +254,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 
         let pop = NSPopover()
         pop.contentViewController = hosting
-        pop.contentSize = SettingsView.compactPanelSize
+        pop.contentSize = Self.popoverContentSize()
+        observePopoverHeight()
         // applicationDefined: .transient closes itself when PinDock is not the active app.
         pop.behavior = .applicationDefined
         pop.animates = true
         pop.delegate = self
         pop.appearance = NSApp.effectiveAppearance
         popover = pop
+    }
+
+    private static func popoverContentSize() -> NSSize {
+        let measured = SettingsView.livePopoverHeight
+        let height = measured > 80 ? measured : 520
+        return NSSize(
+            width: SettingsView.compactPanelWidth,
+            height: min(height, SettingsView.menuBarScreenHeight)
+        )
+    }
+
+    private func observePopoverHeight() {
+        guard popoverHeightObserver == nil else { return }
+        popoverHeightObserver = NotificationCenter.default.addObserver(
+            forName: .pindockPopoverHeightDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] note in
+            guard let height = note.object as? CGFloat else { return }
+            self?.popover?.contentSize = NSSize(width: SettingsView.compactPanelWidth, height: height)
+        }
     }
 
     private func togglePopover() {
@@ -277,7 +300,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         AppState.shared.menuBarOpenNonce += 1
 
         popover?.appearance = NSApp.effectiveAppearance
-        popover?.contentSize = SettingsView.compactPanelSize
+        popover?.contentSize = Self.popoverContentSize()
         // Do not NSApp.activate — that pulls PinDock to the foreground.
         popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         preparePopoverWindow()

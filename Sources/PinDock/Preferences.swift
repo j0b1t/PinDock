@@ -96,6 +96,8 @@ extension Notification.Name {
     static let pindockPreviewScroll = Notification.Name("pindockPreviewScroll")
     /// README demo: `MainWindowView.WindowPane.rawValue`.
     static let pindockPreviewPane = Notification.Name("pindockPreviewPane")
+    /// Menu-bar panel height so the Dock page can show every display.
+    static let pindockPopoverHeightDidChange = Notification.Name("pindockPopoverHeightDidChange")
 }
 
 final class Preferences {

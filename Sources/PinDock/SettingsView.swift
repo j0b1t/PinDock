@@ -17,11 +17,36 @@ struct SettingsView: View {
     }
 
     @State private var compactTab: CompactTab = .dock
+    /// Laid-out height of the header and the Dock / Settings switch.
+    @State private var chromeHeight: CGFloat = 0
+    /// Laid-out height of the Dock page, including every display row.
+    @State private var dockBodyHeight: CGFloat = 0
 
     /// Wide enough that “Show PinDock” + “Menu bar and App” stay on one row.
-    static let compactPanelSize = CGSize(width: 440, height: 540)
+    static let compactPanelWidth: CGFloat = 440
+    /// Last height the menu bar actually fitted to the Dock page.
+    static var livePopoverHeight: CGFloat = 0
+    /// Fallback before the live display count is known.
+    static let compactPanelSize = CGSize(width: compactPanelWidth, height: 640)
 
-    private var panelWidth: CGFloat { compact ? Self.compactPanelSize.width : 420 }
+    /// Room under the menu bar on the screen that actually shows it.
+    static var menuBarScreenHeight: CGFloat {
+        let screen = NSScreen.screens.max(by: { $0.frame.maxY < $1.frame.maxY })
+        return max(520, (screen?.visibleFrame.height ?? 800) - 8)
+    }
+
+    private var panelWidth: CGFloat { compact ? Self.compactPanelWidth : 420 }
+
+    /// Exact Dock-page length, capped so the panel stays on the menu-bar screen.
+    private var compactHeight: CGFloat? {
+        let raw = chromeHeight + dockBodyHeight
+        guard raw > 80 else { return nil }
+        return min(raw, Self.menuBarScreenHeight)
+    }
+
+    private var dockPageFits: Bool {
+        chromeHeight + dockBodyHeight <= Self.menuBarScreenHeight + 0.5
+    }
 
     var body: some View {
         Group {
@@ -49,69 +74,113 @@ struct SettingsView: View {
 
     private var compactBody: some View {
         VStack(spacing: 0) {
-            header
-            Group {
-                if colorScheme == .dark {
-                    Picker("", selection: $compactTab) {
-                        Text(L10n.t("tab.dock")).tag(CompactTab.dock)
-                        Text(L10n.t("tab.settings")).tag(CompactTab.settings)
-                    }
-                    .pickerStyle(.segmented)
-                    .controlSize(.large)
-                } else {
-                    PinDockLightSegments(
-                        selection: $compactTab,
-                        options: [
-                            (.dock, L10n.t("tab.dock")),
-                            (.settings, L10n.t("tab.settings"))
-                        ]
-                    )
-                }
+            VStack(spacing: 0) {
+                header
+                menuTabs
             }
-            .padding(.horizontal, 14)
-            .padding(.top, 4)
-            .padding(.bottom, 10)
-            ScrollViewReader { proxy in
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        if compactTab == .dock {
-                            if state.updateAvailable { updateBanner }
-                            if state.dockIsAway { moveBackBanner }
-                            if showsAccessibilityBanner { accessibilityBanner }
-                            pinDockEnableSection
-                            defaultSection
-                            allowListSection
-                        } else {
-                            appearanceSection.id("appearance")
-                            behaviorSection.id("behavior")
-                            permissionsSection.id("permissions")
-                            updatesSection.id("updates")
-                            footer.id("footer")
-                        }
+            .readHeight { height in
+                guard abs(height - chromeHeight) > 0.5 else { return }
+                chromeHeight = height
+            }
+
+            if compactTab == .dock {
+                if dockPageFits {
+                    dockPage
+                } else {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        dockPage
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 14)
+                    .frame(height: max(Self.menuBarScreenHeight - chromeHeight, 1))
                 }
-                .onReceive(NotificationCenter.default.publisher(for: .pindockPreviewScroll)) { note in
-                    guard let id = note.object as? String else { return }
-                    if reduceMotion {
-                        proxy.scrollTo(id, anchor: .top)
-                    } else {
-                        withAnimation(PinDockMotion.settle) {
-                            proxy.scrollTo(id, anchor: .top)
-                        }
-                    }
-                }
+            } else {
+                settingsPage
+                    .frame(height: max(dockBodyHeight, 1))
             }
         }
-        // Fixed size so the popover does not jump when switching Dock / Settings.
+        // Height is the measured Dock page, so Settings does not resize the bubble.
         // Do not clip here. macOS 27 rounds the popover itself; a tighter
         // corner left a second edge inside the system corner.
-        .frame(width: panelWidth, height: Self.compactPanelSize.height)
+        .frame(width: panelWidth, height: compact ? compactHeight : nil)
+        .onAppear { publishPopoverHeight() }
+        .onChange(of: compactHeight) { _ in publishPopoverHeight() }
         .background { glassBackground }
         .foregroundStyle(.primary)
         // Menu-bar panel is often not the key window — keep glass/controls looking active.
         .environment(\.controlActiveState, .key)
+    }
+
+    private var menuTabs: some View {
+        Group {
+            if colorScheme == .dark {
+                Picker("", selection: $compactTab) {
+                    Text(L10n.t("tab.dock")).tag(CompactTab.dock)
+                    Text(L10n.t("tab.settings")).tag(CompactTab.settings)
+                }
+                .pickerStyle(.segmented)
+                .controlSize(.large)
+            } else {
+                PinDockLightSegments(
+                    selection: $compactTab,
+                    options: [
+                        (.dock, L10n.t("tab.dock")),
+                        (.settings, L10n.t("tab.settings"))
+                    ]
+                )
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 4)
+        .padding(.bottom, 10)
+    }
+
+    private var dockPage: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if state.updateAvailable { updateBanner }
+            if state.dockIsAway { moveBackBanner }
+            if showsAccessibilityBanner { accessibilityBanner }
+            pinDockEnableSection
+            defaultSection
+            allowListSection
+        }
+        .padding(.horizontal, 14)
+        .padding(.bottom, 14)
+        .readHeight { height in
+            guard abs(height - dockBodyHeight) > 0.5 else { return }
+            dockBodyHeight = height
+        }
+    }
+
+    private var settingsPage: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 14) {
+                    appearanceSection.id("appearance")
+                    behaviorSection.id("behavior")
+                    permissionsSection.id("permissions")
+                    updatesSection.id("updates")
+                    footer.id("footer")
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 14)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .pindockPreviewScroll)) { note in
+                guard let id = note.object as? String else { return }
+                if reduceMotion {
+                    proxy.scrollTo(id, anchor: .top)
+                } else {
+                    withAnimation(PinDockMotion.settle) {
+                        proxy.scrollTo(id, anchor: .top)
+                    }
+                }
+            }
+        }
+    }
+
+    private func publishPopoverHeight() {
+        guard compact, let compactHeight else { return }
+        guard abs(compactHeight - Self.livePopoverHeight) > 0.5 else { return }
+        Self.livePopoverHeight = compactHeight
+        NotificationCenter.default.post(name: .pindockPopoverHeightDidChange, object: compactHeight)
     }
 
     /// Maintainer: `PinDock --ui-preview-a11y` forces the Accessibility banner for screenshots.
@@ -627,6 +696,25 @@ struct SettingsView: View {
             return colorScheme == .dark ? Color(white: 0.24) : Color(white: 0.98)
         }
         return colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.38)
+    }
+}
+
+private struct ViewHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+private extension View {
+    /// Reports this view’s laid-out height, not the height proposed by a scroll view.
+    func readHeight(_ onChange: @escaping (CGFloat) -> Void) -> some View {
+        background {
+            GeometryReader { proxy in
+                Color.clear.preference(key: ViewHeightKey.self, value: proxy.size.height)
+            }
+        }
+        .onPreferenceChange(ViewHeightKey.self, perform: onChange)
     }
 }
 
