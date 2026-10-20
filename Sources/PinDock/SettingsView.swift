@@ -6,7 +6,6 @@ struct SettingsView: View {
     @ObservedObject var state: AppState
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     /// Compact = menu-bar popover; false = larger standalone window.
     var compact: Bool = true
@@ -36,6 +35,11 @@ struct SettingsView: View {
     }
 
     private var panelWidth: CGFloat { compact ? Self.compactPanelWidth : 420 }
+
+    private var isLiquidGlass: Bool {
+        if #available(macOS 26.0, *) { return true }
+        return false
+    }
 
     /// Exact Dock-page length, capped so the panel stays on the menu-bar screen.
     private var compactHeight: CGFloat? {
@@ -111,7 +115,7 @@ struct SettingsView: View {
 
     private var menuTabs: some View {
         Group {
-            if colorScheme == .dark {
+            if colorScheme == .dark || isLiquidGlass {
                 Picker("", selection: $compactTab) {
                     Text(L10n.t("tab.dock")).tag(CompactTab.dock)
                     Text(L10n.t("tab.settings")).tag(CompactTab.settings)
@@ -687,15 +691,7 @@ struct SettingsView: View {
     }
 
     private var chipFill: some View {
-        RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(chipColor)
-    }
-
-    private var chipColor: Color {
-        if reduceTransparency {
-            return colorScheme == .dark ? Color(white: 0.24) : Color(white: 0.98)
-        }
-        return colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.38)
+        PinDockCardFill()
     }
 }
 

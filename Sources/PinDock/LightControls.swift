@@ -132,7 +132,11 @@ private struct PinDockBorderedButtonModifier: ViewModifier {
 
     @ViewBuilder
     func body(content: Content) -> some View {
-        if colorScheme == .light {
+        if #available(macOS 26.0, *) {
+            content
+                .buttonStyle(.glass)
+                .controlSize(.large)
+        } else if colorScheme == .light {
             content.buttonStyle(PinDockLightGlassButtonStyle())
         } else {
             content.buttonStyle(PinDockDarkGlassButtonStyle())

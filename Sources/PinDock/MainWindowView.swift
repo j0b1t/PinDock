@@ -67,7 +67,7 @@ struct MainWindowView: View {
         }
         .padding(10)
         .background {
-            PinDockGlass()
+            PinDockGlass(role: .plate)
                 .ignoresSafeArea()
         }
         .frame(minWidth: 560, minHeight: 400)
@@ -132,7 +132,7 @@ struct MainWindowView: View {
         }
         .padding(6)
         .frame(maxHeight: .infinity, alignment: .top)
-        .background { PinDockGlass() }
+        .background { PinDockGlass(role: .group) }
     }
 
     private func sidebarRow(_ item: WindowPane) -> some View {
@@ -214,7 +214,7 @@ struct MainWindowView: View {
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background { PinDockGlass() }
+        .background { PinDockGlass(role: .group) }
     }
 
     private func glassCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
@@ -595,17 +595,21 @@ private struct TitleBubbleModifier: ViewModifier {
             .padding(.horizontal, 14)
             .frame(height: 36)
             .background {
-                Capsule(style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .opacity(colorScheme == .dark ? 0.72 : 0.78)
-                    .overlay {
-                        Capsule(style: .continuous)
-                            .fill(colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.18))
-                    }
-                    .overlay {
-                        Capsule(style: .continuous)
-                            .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.16 : 0.10), lineWidth: 0.5)
-                    }
+                if #available(macOS 26.0, *) {
+                    LiquidGlassBackdrop(clear: true, cornerRadius: 18)
+                } else {
+                    Capsule(style: .continuous)
+                        .fill(.ultraThinMaterial)
+                        .opacity(colorScheme == .dark ? 0.72 : 0.78)
+                        .overlay {
+                            Capsule(style: .continuous)
+                                .fill(colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.18))
+                        }
+                        .overlay {
+                            Capsule(style: .continuous)
+                                .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.16 : 0.10), lineWidth: 0.5)
+                        }
+                }
             }
     }
 }

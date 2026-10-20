@@ -69,6 +69,26 @@ struct PinDockAppIcon: View {
     }
 }
 
+/// macOS 26 Liquid Glass. Regular is the thick plate; clear is the lighter group on top of it.
+struct LiquidGlassBackdrop: NSViewRepresentable {
+    var clear: Bool = false
+    var cornerRadius: CGFloat = 0
+
+    func makeNSView(context: Context) -> NSView {
+        guard #available(macOS 26.0, *) else { return NSView() }
+        let glass = NSGlassEffectView()
+        glass.style = clear ? .clear : .regular
+        glass.cornerRadius = cornerRadius
+        return glass
+    }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        guard #available(macOS 26.0, *), let glass = view as? NSGlassEffectView else { return }
+        glass.style = clear ? .clear : .regular
+        glass.cornerRadius = cornerRadius
+    }
+}
+
 /// Desktop shows through. Dark uses the HUD. Light forces Aqua so the frost stays pale.
 struct GlassBackdrop: NSViewRepresentable {
     var material: NSVisualEffectView.Material = .underWindowBackground
@@ -110,12 +130,19 @@ enum PinDockMotion {
     }
 }
 
-/// Shared liquid-glass fill. Dark stays the charcoal HUD.
-/// Light is a pale popover frost: the material tints light, so a dark desktop does not turn it gray, and the blur stays visible.
+/// Where a glass surface sits. The plate is the thick window. A group is the lighter card on top of it.
+enum PinDockGlassRole {
+    case plate
+    case group
+}
+
+/// Shared glass fill. On macOS 26 this is the system Liquid Glass and follows Light or Dark.
+/// Older systems keep the HUD / pale-popover fallback.
 struct PinDockGlass: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
+    var role: PinDockGlassRole = .plate
     /// Popover chrome already blurs; only draw the wash so we don’t stack two materials.
     var fillMaterial: Bool = true
     var applyWash: Bool = true
@@ -123,17 +150,18 @@ struct PinDockGlass: View {
     var body: some View {
         ZStack {
             if reduceTransparency {
-                // Solid frost. Blur is what “reduce transparency” asks us to drop.
                 Rectangle()
                     .fill(colorScheme == .dark ? Color(white: 0.16) : Color(white: 0.96))
             } else if fillMaterial {
-                if colorScheme == .dark {
+                if #available(macOS 26.0, *) {
+                    LiquidGlassBackdrop(clear: role == .group, cornerRadius: role == .group ? 12 : 0)
+                } else if colorScheme == .dark {
                     GlassBackdrop(material: .hudWindow, emphasized: false)
                 } else {
                     GlassBackdrop(material: .popover, emphasized: true, appearance: .aqua)
                 }
             }
-            if applyWash && !reduceTransparency {
+            if applyWash, !reduceTransparency, #unavailable(macOS 26.0) {
                 if colorScheme == .dark {
                     Rectangle()
                         .fill(Color.black.opacity(0.10))
@@ -142,7 +170,6 @@ struct PinDockGlass: View {
                         .fill(Color.white.opacity(0.08))
                         .blendMode(.plusLighter)
                 } else {
-                    // Thin white lift. The popover material already carries the light tint.
                     Rectangle()
                         .fill(Color.white.opacity(0.10))
                 }
@@ -162,18 +189,28 @@ struct PinDockCardFill: View {
     @Environment(\.colorSchemeContrast) private var contrast
 
     var body: some View {
-        Rectangle()
-            .fill(cardColor)
-            .overlay {
-                if contrast == .increased {
-                    Rectangle().stroke(Color.primary.opacity(0.55), lineWidth: 1)
-                }
+        ZStack(alignment: .top) {
+            Rectangle().fill(cardColor)
+            if !reduceTransparency, #available(macOS 26.0, *) {
+                // Light catches the top edge of a glass group.
+                Rectangle()
+                    .fill(Color.white.opacity(colorScheme == .dark ? 0.16 : 0.65))
+                    .frame(height: 0.6)
             }
+        }
+        .overlay {
+            if contrast == .increased {
+                Rectangle().stroke(Color.primary.opacity(0.55), lineWidth: 1)
+            }
+        }
     }
 
     private var cardColor: Color {
         if reduceTransparency {
             return colorScheme == .dark ? Color(white: 0.24) : Color(white: 0.98)
+        }
+        if #available(macOS 26.0, *) {
+            return colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.22)
         }
         return colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.38)
     }
