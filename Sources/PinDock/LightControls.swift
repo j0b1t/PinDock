@@ -150,7 +150,9 @@ private struct PinDockLightGlassButtonStyle: ButtonStyle {
             .padding(.horizontal, 14)
             .padding(.vertical, 7)
             .background { PinDockLightControlChrome() }
-            .opacity(isEnabled ? (configuration.isPressed ? 0.72 : 1) : 0.42)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+            .opacity(isEnabled ? 1 : 0.42)
     }
 }
 
@@ -172,6 +174,8 @@ private struct PinDockDarkGlassButtonStyle: ButtonStyle {
                             .strokeBorder(Color.white.opacity(0.16), lineWidth: 0.5)
                     }
             }
-            .opacity(isEnabled ? (configuration.isPressed ? 0.72 : 1) : 0.42)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+            .opacity(isEnabled ? 1 : 0.42)
     }
 }

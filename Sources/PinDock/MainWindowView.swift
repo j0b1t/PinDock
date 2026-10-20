@@ -5,6 +5,7 @@ import AppKit
 struct MainWindowView: View {
     @ObservedObject var state: AppState
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pane: WindowPane = {
         let args = CommandLine.arguments
         if args.contains("--ui-preview-window") || args.contains("--ui-demo-window") {
@@ -92,7 +93,7 @@ struct MainWindowView: View {
             }
         )
         .id(state.appLanguage)
-        .animation(.easeInOut(duration: 0.15), value: sidebarExpanded)
+        .animation(PinDockMotion.settle(reduceMotion: reduceMotion), value: sidebarExpanded)
         .onReceive(NotificationCenter.default.publisher(for: .pindockPreviewPane)) { note in
             guard let raw = note.object as? String, let next = WindowPane(rawValue: raw) else { return }
             pane = next
@@ -166,10 +167,12 @@ struct MainWindowView: View {
         .background {
             if selected {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(colorScheme == .dark ? AnyShapeStyle(.ultraThinMaterial) : AnyShapeStyle(Color.primary.opacity(0.06)))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.06))
+                        if colorScheme == .dark {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.primary.opacity(0.12))
+                        }
                     }
                     .overlay {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -200,6 +203,7 @@ struct MainWindowView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.system(size: 22, weight: .semibold))
+                        .tracking(-0.44)
                     Text(subtitle)
                         .font(.system(size: 13))
                         .foregroundStyle(.secondary)

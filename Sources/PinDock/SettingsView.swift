@@ -5,6 +5,8 @@ import AppKit
 struct SettingsView: View {
     @ObservedObject var state: AppState
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     /// Compact = menu-bar popover; false = larger standalone window.
     var compact: Bool = true
@@ -92,8 +94,12 @@ struct SettingsView: View {
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .pindockPreviewScroll)) { note in
                     guard let id = note.object as? String else { return }
-                    withAnimation(.easeInOut(duration: 0.45)) {
+                    if reduceMotion {
                         proxy.scrollTo(id, anchor: .top)
+                    } else {
+                        withAnimation(PinDockMotion.settle) {
+                            proxy.scrollTo(id, anchor: .top)
+                        }
                     }
                 }
             }
@@ -613,7 +619,14 @@ struct SettingsView: View {
 
     private var chipFill: some View {
         RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.38))
+            .fill(chipColor)
+    }
+
+    private var chipColor: Color {
+        if reduceTransparency {
+            return colorScheme == .dark ? Color(white: 0.24) : Color(white: 0.98)
+        }
+        return colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.38)
     }
 }
 

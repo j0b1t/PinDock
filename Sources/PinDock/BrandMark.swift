@@ -101,24 +101,39 @@ enum PinDockColor {
     static let dock = Color(red: 1.0, green: 0.584, blue: 0.0)
 }
 
+/// Critically damped motion. No bounce. Reduced motion snaps instead of sliding.
+enum PinDockMotion {
+    static let settle = Animation.spring(response: 0.35, dampingFraction: 1)
+
+    static func settle(reduceMotion: Bool) -> Animation? {
+        reduceMotion ? nil : settle
+    }
+}
+
 /// Shared liquid-glass fill. Dark stays the charcoal HUD.
 /// Light is a pale popover frost: the material tints light, so a dark desktop does not turn it gray, and the blur stays visible.
 struct PinDockGlass: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
     /// Popover chrome already blurs; only draw the wash so we don’t stack two materials.
     var fillMaterial: Bool = true
     var applyWash: Bool = true
 
     var body: some View {
         ZStack {
-            if fillMaterial {
+            if reduceTransparency {
+                // Solid frost. Blur is what “reduce transparency” asks us to drop.
+                Rectangle()
+                    .fill(colorScheme == .dark ? Color(white: 0.16) : Color(white: 0.96))
+            } else if fillMaterial {
                 if colorScheme == .dark {
                     GlassBackdrop(material: .hudWindow, emphasized: false)
                 } else {
                     GlassBackdrop(material: .popover, emphasized: true, appearance: .aqua)
                 }
             }
-            if applyWash {
+            if applyWash && !reduceTransparency {
                 if colorScheme == .dark {
                     Rectangle()
                         .fill(Color.black.opacity(0.10))
@@ -132,6 +147,10 @@ struct PinDockGlass: View {
                         .fill(Color.white.opacity(0.10))
                 }
             }
+            if contrast == .increased {
+                Rectangle()
+                    .stroke(Color.primary.opacity(0.55), lineWidth: 1)
+            }
         }
     }
 }
@@ -139,10 +158,24 @@ struct PinDockGlass: View {
 /// Frosted cards on top of PinDockGlass.
 struct PinDockCardFill: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
 
     var body: some View {
         Rectangle()
-            .fill(colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.38))
+            .fill(cardColor)
+            .overlay {
+                if contrast == .increased {
+                    Rectangle().stroke(Color.primary.opacity(0.55), lineWidth: 1)
+                }
+            }
+    }
+
+    private var cardColor: Color {
+        if reduceTransparency {
+            return colorScheme == .dark ? Color(white: 0.24) : Color(white: 0.98)
+        }
+        return colorScheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.38)
     }
 }
 
