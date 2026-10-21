@@ -282,6 +282,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         ) { [weak self] note in
             guard let height = note.object as? CGFloat else { return }
             self?.popover?.contentSize = NSSize(width: SettingsView.compactPanelWidth, height: height)
+            self?.schedulePopoverChromeRefresh()
         }
     }
 
@@ -361,20 +362,91 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         }
         matchPopoverChrome(hostingView: view, in: window)
         if #available(macOS 26.0, *) {
-            clearPopoverFrameFill(of: window)
+            layoutPopoverGlass(hostingView: view, in: window)
+        }
+        view.postsFrameChangedNotifications = true
+        NotificationCenter.default.removeObserver(self, name: NSView.frameDidChangeNotification, object: view)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(popoverContentFrameDidChange(_:)),
+            name: NSView.frameDidChangeNotification,
+            object: view
+        )
+    }
+
+    @objc private func popoverContentFrameDidChange(_ note: Notification) {
+        guard let view = note.object as? NSView, let window = view.window else { return }
+        if #available(macOS 26.0, *) {
+            layoutPopoverGlass(hostingView: view, in: window)
         }
     }
 
-    /// The system popover paints its own fill behind our glass, so the menu bar
-    /// looks flatter than the app window. Stop that fill and let Liquid Glass show.
-    private func clearPopoverFrameFill(of window: NSWindow) {
-        guard let frameView = window.contentView?.superview else { return }
+    /// The arrow only needs a new frame once the panel has settled, not on every spring tick.
+    private func schedulePopoverChromeRefresh() {
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(refreshPopoverChrome), object: nil)
+        perform(#selector(refreshPopoverChrome), with: nil, afterDelay: 0.4)
+    }
+
+    @objc private func refreshPopoverChrome() {
+        guard let view = popover?.contentViewController?.view, let window = view.window else { return }
+        matchPopoverChrome(hostingView: view, in: window)
+    }
+
+    /// One Liquid Glass plate, like the app window. The system popover fill stays out
+    /// so the desktop shows through. The arrow is ours and follows a resize.
+    private func layoutPopoverGlass(hostingView: NSView, in window: NSWindow) {
+        guard #available(macOS 26.0, *),
+              let frameView = window.contentView?.superview else { return }
         frameView.wantsLayer = true
         frameView.layer?.contents = nil
         frameView.layer?.backgroundColor = NSColor.clear.cgColor
         frameView.layer?.isOpaque = false
         frameView.layerContentsRedrawPolicy = .never
+
+        frameView.layoutSubtreeIfNeeded()
+        let hostFrame = hostingView.convert(hostingView.bounds, to: frameView)
+        var body = frameView.bounds
+        body.size.height = max(hostFrame.maxY - body.minY, 1)
+
+        let plate: NSGlassEffectView
+        if let existing = frameView.subviews.first(where: { $0.identifier == Self.plateID }) as? NSGlassEffectView {
+            plate = existing
+        } else {
+            let glass = NSGlassEffectView()
+            glass.identifier = Self.plateID
+            glass.style = .regular
+            frameView.addSubview(glass, positioned: .below, relativeTo: hostingView)
+            plate = glass
+        }
+        plate.cornerRadius = 20
+        plate.frame = body
+
+        let above = frameView.bounds.maxY - hostFrame.maxY
+        guard above > 3 else {
+            frameView.subviews.first { $0.identifier == Self.arrowFillID }?.removeFromSuperview()
+            return
+        }
+        let height = above
+        let width = max(height * 2.15, 18)
+        let arrowFrame = NSRect(
+            x: hostFrame.midX - width / 2,
+            y: hostFrame.maxY,
+            width: width,
+            height: height
+        )
+        if let existing = frameView.subviews.first(where: { $0.identifier == Self.arrowFillID }) {
+            existing.frame = arrowFrame
+            frameView.addSubview(existing)
+            return
+        }
+        let arrow = NSHostingView(rootView: PinDockPopoverArrow())
+        arrow.identifier = Self.arrowFillID
+        arrow.frame = arrowFrame
+        arrow.appearance = NSApp.effectiveAppearance
+        frameView.addSubview(arrow)
     }
+
+    private static let plateID = NSUserInterfaceItemIdentifier("PinDockPopoverPlate")
 
     private func matchPopoverChrome(hostingView: NSView, in window: NSWindow) {
         var ancestorIDs = Set<ObjectIdentifier>()

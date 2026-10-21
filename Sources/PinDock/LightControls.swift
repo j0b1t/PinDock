@@ -106,16 +106,18 @@ struct PinDockGlassSegments<Selection: Hashable>: View {
                     Text(option.1)
                         .font(.system(size: 13, weight: on ? .semibold : .medium))
                         .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .background {
-                            if on {
-                                segmentGlass
-                                    .matchedGeometryEffect(id: "segment", in: selectionSpace)
-                            }
-                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 .buttonStyle(SegmentPressStyle())
+                .frame(maxWidth: .infinity)
+                .frame(height: 36)
+                .background {
+                    if on {
+                        segmentGlass
+                            .matchedGeometryEffect(id: "segment", in: selectionSpace)
+                    }
+                }
+                .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
         }
         .padding(3)
@@ -140,6 +142,7 @@ struct PinDockGlassSegments<Selection: Hashable>: View {
 private struct SegmentPressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
+            .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }

@@ -91,6 +91,8 @@ final class AppState: ObservableObject {
     /// Stop retrying Move Back after a blocked display if relocate keeps failing
     /// (each try warps the cursor and looks like the mouse is spinning).
     private var autoEjectFailCount = 0
+    /// After an explicit Move Back, ignore a stale “still away” reading so the banner leaves once.
+    private var suppressAwayUntil: CFAbsoluteTime = 0
 
     // Updates (GitHub Releases, optional network)
     @Published var autoCheckForUpdates: Bool {
@@ -213,7 +215,7 @@ final class AppState: ObservableObject {
             actualDockDisplayID = PinDockEngine.shared.actualDockDisplayID
         }
         let host = displayHostingDock
-        dockIsAway = host != 0 && defaultDisplayID != 0 && host != defaultDisplayID
+        publishDockAway(host: host)
         refreshDockAutoHideFromSystem()
         refreshStatus()
     }
@@ -384,7 +386,7 @@ final class AppState: ObservableObject {
         isRunning = PinDockEngine.shared.isRunning
 
         let host = displayHostingDock
-        dockIsAway = host != 0 && defaultDisplayID != 0 && host != defaultDisplayID
+        publishDockAway(host: host)
 
         let defName = DisplayManager.shared.name(for: defaultDisplayID)
         let hostName = DisplayManager.shared.name(for: host)
@@ -401,6 +403,15 @@ final class AppState: ObservableObject {
             }
         } else {
             statusLine = L10n.t("status.notRunning")
+        }
+    }
+
+    private func publishDockAway(host: UInt32) {
+        let away = host != 0 && defaultDisplayID != 0 && host != defaultDisplayID
+        if CFAbsoluteTimeGetCurrent() < suppressAwayUntil {
+            dockIsAway = false
+        } else {
+            dockIsAway = away
         }
     }
 
@@ -450,6 +461,11 @@ final class AppState: ObservableObject {
         } else {
             Preferences.shared.currentDockDisplayID = id
         }
+        // Hide the banner once. A stale dock reading a moment later must not bring it back.
+        actualDockDisplayID = id
+        dockIsAway = false
+        suppressAwayUntil = CFAbsoluteTimeGetCurrent() + 1.2
+        refreshStatus()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
             PinDockEngine.shared.moveDockToDefault()
         }

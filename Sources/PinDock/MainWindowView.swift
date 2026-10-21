@@ -75,9 +75,14 @@ struct MainWindowView: View {
             HStack(spacing: 10) {
                 titleBubble
                 Spacer(minLength: 8)
+                if state.dockIsAway {
+                    moveBackBubble
+                        .transition(PinDockMotion.materialize(reduceMotion: reduceMotion))
+                }
                 PinDockStatusChip(state: state)
                     .titleBubble()
             }
+            .animation(reduceMotion ? .easeOut(duration: 0.2) : PinDockMotion.settle, value: state.dockIsAway)
             .padding(.horizontal, 12)
             .padding(.top, 6)
             .padding(.bottom, 8)
@@ -121,6 +126,25 @@ struct MainWindowView: View {
                 .font(.system(size: 13, weight: .semibold))
         }
         .titleBubble()
+    }
+
+    /// Shown only while the Dock is away from the display marked as default.
+    private var moveBackBubble: some View {
+        Button {
+            state.moveBackToDefault()
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.uturn.backward")
+                    .font(.system(size: 12, weight: .semibold))
+                Text(L10n.t("moveBack"))
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            .foregroundStyle(.primary)
+            .titleBubble()
+        }
+        .buttonStyle(.plain)
+        .keyboardShortcut("d", modifiers: [.command, .shift])
+        .help(L10n.t("moveBack.hint"))
     }
 
     private var sidebar: some View {
@@ -277,29 +301,6 @@ struct MainWindowView: View {
 
     private var displaysPage: some View {
         page(title: L10n.t("pane.displays"), subtitle: L10n.t("displays.subtitle")) {
-            if state.dockIsAway {
-                HStack(alignment: .center, spacing: 12) {
-                    Image(systemName: "arrow.uturn.backward.circle.fill")
-                        .font(.system(size: 22))
-                        .foregroundStyle(Color.accentColor)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(L10n.t("dockAway.body"))
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("\(DisplayManager.shared.name(for: state.actualDockDisplayID != 0 ? state.actualDockDisplayID : state.currentDockDisplayID)) → \(DisplayManager.shared.name(for: state.defaultDisplayID))")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Button(L10n.t("moveBack")) { state.moveBackToDefault() }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                        .keyboardShortcut("d", modifiers: [.command, .shift])
-                }
-                .padding(14)
-                .background { PinDockCardFill() }
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            }
-
             VStack(alignment: .leading, spacing: 8) {
                 Label(L10n.t("arrangement"), systemImage: "display.2")
                     .font(.system(size: 13, weight: .semibold))

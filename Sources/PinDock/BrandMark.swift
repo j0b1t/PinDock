@@ -128,6 +128,29 @@ enum PinDockMotion {
     static func settle(reduceMotion: Bool) -> Animation? {
         reduceMotion ? nil : settle
     }
+
+    /// Glass arriving and leaving: scale and opacity together, from the top edge.
+    /// Reduced motion is only a short fade.
+    static func materialize(reduceMotion: Bool) -> AnyTransition {
+        if reduceMotion {
+            return .opacity
+        }
+        return .modifier(
+            active: PinDockMaterializeModifier(shown: false),
+            identity: PinDockMaterializeModifier(shown: true)
+        )
+    }
+}
+
+private struct PinDockMaterializeModifier: ViewModifier {
+    var shown: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown ? 1 : 0)
+            .scaleEffect(shown ? 1 : 0.92, anchor: .top)
+            .offset(y: shown ? 0 : -8)
+    }
 }
 
 /// Where a glass surface sits. The plate is the thick window. A group is the lighter card on top of it.

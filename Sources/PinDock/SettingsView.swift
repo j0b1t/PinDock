@@ -124,7 +124,6 @@ struct SettingsView: View {
     private var dockPage: some View {
         VStack(alignment: .leading, spacing: 14) {
             if state.updateAvailable { updateBanner }
-            if state.dockIsAway { moveBackBanner }
             if showsAccessibilityBanner { accessibilityBanner }
             pinDockEnableSection
             defaultSection
@@ -181,7 +180,13 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var glassBackground: some View {
-        PinDockGlass()
+        // On macOS 26 the popover plate is the same glass view as the app window,
+        // placed behind this content. A second plate here would turn it opaque.
+        if compact, #available(macOS 26.0, *) {
+            Color.clear
+        } else {
+            PinDockGlass()
+        }
     }
 
     // MARK: - Header
@@ -195,9 +200,14 @@ struct SettingsView: View {
             }
             .titleBubble()
             Spacer(minLength: 8)
+            if state.dockIsAway {
+                moveBackBubble
+                    .transition(PinDockMotion.materialize(reduceMotion: reduceMotion))
+            }
             PinDockStatusChip(state: state)
                 .titleBubble()
         }
+        .animation(reduceMotion ? .easeOut(duration: 0.2) : PinDockMotion.settle, value: state.dockIsAway)
         .padding(.horizontal, 14)
         .padding(.top, 10)
         .padding(.bottom, 6)
@@ -248,30 +258,23 @@ struct SettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
-    private var moveBackBanner: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "arrow.uturn.backward.circle.fill")
-                .font(.system(size: 20))
-                .foregroundStyle(PinDockColor.accent)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(L10n.t("dockAway"))
+    /// Same bubble as the app window: only while the Dock is off the default display.
+    private var moveBackBubble: some View {
+        Button {
+            state.moveBackToDefault()
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.uturn.backward")
                     .font(.system(size: 12, weight: .semibold))
-                Text("\(DisplayManager.shared.name(for: state.actualDockDisplayID != 0 ? state.actualDockDisplayID : state.currentDockDisplayID)) → \(DisplayManager.shared.name(for: state.defaultDisplayID))")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                Text(L10n.t("moveBack"))
+                    .font(.system(size: 13, weight: .semibold))
             }
-            Spacer(minLength: 6)
-            Button(L10n.t("moveBack")) { state.moveBackToDefault() }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .frame(minHeight: 32)
-                .keyboardShortcut("d", modifiers: [.command, .shift])
+            .foregroundStyle(.primary)
+            .titleBubble()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 12)
-        .background(Color.accentColor.opacity(0.12))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .buttonStyle(.plain)
+        .keyboardShortcut("d", modifiers: [.command, .shift])
+        .help(L10n.t("moveBack.hint"))
     }
 
     private var accessibilityBanner: some View {
