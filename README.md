@@ -5,6 +5,10 @@
 <h1 align="center">PinDock</h1>
 
 <p align="center">
+  <strong>Version 1.1.3</strong>
+</p>
+
+<p align="center">
   <strong>Pin the macOS Dock to the display you choose.</strong><br>
   No accidental jumps · free · offline · open source
 </p>
@@ -29,7 +33,7 @@
 ---
 
 <p align="center">
-  <img src="docs/assets/1.1.3/walkthrough-menubar.gif" width="360" alt="PinDock 1.1.3 — menu bar walkthrough">
+  <img src="docs/assets/1.1.3-glass/walkthrough-menubar.gif" width="440" alt="PinDock 1.1.3 — menu bar walkthrough">
 </p>
 
 <p align="center">
@@ -37,9 +41,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/1.1.3/screenshot-popover.png" width="280" alt="PinDock 1.1.3 — menu bar Dock tab, dark">
+  <img src="docs/assets/1.1.3-glass/screenshot-popover.png" width="420" alt="PinDock 1.1.3 — menu bar Dock tab, dark">
   &nbsp;
-  <img src="docs/assets/1.1.3/screenshot-popover-light.png" width="280" alt="PinDock 1.1.3 — menu bar Dock tab, light">
+  <img src="docs/assets/1.1.3-glass/screenshot-popover-light.png" width="420" alt="PinDock 1.1.3 — menu bar Dock tab, light">
 </p>
 
 <p align="center">
@@ -47,9 +51,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/1.1.3/screenshot-settings.png" width="280" alt="PinDock 1.1.3 — menu bar Settings tab, dark">
+  <img src="docs/assets/1.1.3-glass/screenshot-settings.png" width="420" alt="PinDock 1.1.3 — menu bar Settings tab, dark">
   &nbsp;
-  <img src="docs/assets/1.1.3/screenshot-settings-light.png" width="280" alt="PinDock 1.1.3 — menu bar Settings tab, light">
+  <img src="docs/assets/1.1.3-glass/screenshot-settings-light.png" width="420" alt="PinDock 1.1.3 — menu bar Settings tab, light">
 </p>
 
 <p align="center">
@@ -57,7 +61,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/1.1.3/walkthrough-window.gif" width="720" alt="PinDock 1.1.3 — app window walkthrough">
+  <img src="docs/assets/1.1.3-glass/walkthrough-window.gif" width="720" alt="PinDock 1.1.3 — app window walkthrough">
 </p>
 
 <p align="center">
@@ -65,7 +69,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/1.1.3/screenshot-window.png" width="680" alt="PinDock 1.1.3 — app window, dark">
+  <img src="docs/assets/1.1.3-glass/screenshot-window.png" width="680" alt="PinDock 1.1.3 — app window, dark">
 </p>
 
 <p align="center">
@@ -73,7 +77,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/1.1.3/screenshot-window-light.png" width="680" alt="PinDock 1.1.3 — app window, light">
+  <img src="docs/assets/1.1.3-glass/screenshot-window-light.png" width="680" alt="PinDock 1.1.3 — app window, light">
 </p>
 
 <p align="center">

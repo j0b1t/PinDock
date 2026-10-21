@@ -44,8 +44,11 @@ struct PinDockStatusChip: View {
     var body: some View {
         HStack(spacing: 8) {
             Circle()
-                .fill(state.isEnabled && state.isRunning ? Color.green : Color.secondary.opacity(0.4))
-                .frame(width: 9, height: 9)
+                .fill(state.isEnabled && state.isRunning
+                      ? Color(red: 0.20, green: 0.86, blue: 0.32)
+                      : Color.secondary.opacity(0.45))
+                .frame(width: 11, height: 11)
+                .shadow(color: state.isEnabled && state.isRunning ? Color.green.opacity(0.85) : .clear, radius: 3)
             Text(state.isEnabled ? L10n.t("on") : L10n.t("off"))
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.primary)

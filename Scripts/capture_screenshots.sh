@@ -12,7 +12,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APP="${PINDOCK_APP:-/Applications/PinDock.app}"
 BIN="${APP}/Contents/MacOS/PinDock"
-OUT="${ROOT}/docs/assets/1.1.3"
+OUT="${ROOT}/docs/assets/1.1.3-glass"
 DOMAIN="com.github.pindock.PinDock"
 
 if [[ ! -x "${BIN}" ]]; then
